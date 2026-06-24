@@ -143,3 +143,44 @@ body {
 .animate-hover-float {
   animation: hoverFloat 5s ease-in-out infinite;
 }
+
+/* Premium Dark grid pattern utility */
+.bg-dark-grid {
+  background-image: 
+    linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Glowing blur background effects */
+.glow-blob-indigo {
+  filter: blur(140px);
+  background: radial-gradient(circle, rgba(79, 70, 229, 0.25) 0%, rgba(99, 102, 241, 0.05) 70%, transparent 100%);
+}
+
+.glow-blob-purple {
+  filter: blur(140px);
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.2) 0%, rgba(168, 85, 247, 0.05) 70%, transparent 100%);
+}
+
+.glow-blob-blue {
+  filter: blur(140px);
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.02) 70%, transparent 100%);
+}
+
+/* Pulsing typing cursor */
+@keyframes pulseCursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 12px;
+  background-color: currentColor;
+  margin-left: 2px;
+  animation: pulseCursor 0.8s infinite;
+  vertical-align: middle;
+}
+
