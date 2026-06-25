@@ -62,7 +62,7 @@ export default function GoalsPage() {
 
     const initialSaved = glSaved ? parseFloat(glSaved) : 0;
     const goal = new Goal(
-      Math.random().toString(),
+      crypto.randomUUID(),
       userId,
       glTitle,
       new Money(parseFloat(glTarget)),
@@ -78,7 +78,7 @@ export default function GoalsPage() {
       const { Transaction } = await import("../../domain/entities/transaction");
       const tempTxRepo = new LocalStorageTransactionRepository();
       await tempTxRepo.save(new Transaction(
-        Math.random().toString(),
+        crypto.randomUUID(),
         userId,
         "Savings Link",
         `Initial Seed: ${glTitle}`,

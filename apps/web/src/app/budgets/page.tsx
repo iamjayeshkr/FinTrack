@@ -54,7 +54,7 @@ export default function BudgetsPage() {
     if (!bgLimit) return;
 
     const budget = new Budget(
-      Math.random().toString(),
+      crypto.randomUUID(),
       userId,
       bgCategory,
       new Money(parseFloat(bgLimit)),

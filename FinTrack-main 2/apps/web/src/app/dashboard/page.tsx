@@ -112,7 +112,7 @@ function DashboardPage() {
         const date = new Date();
         date.setDate(date.getDate() - t.daysAgo);
         await txRepo.save(new Transaction(
-          Math.random().toString(),
+          crypto.randomUUID(),
           userId,
           t.category,
           t.title,
@@ -128,15 +128,15 @@ function DashboardPage() {
       
       const existingBudgets = await bgRepo.findByUserAndMonth(userId, 6, 2026);
       if (existingBudgets.length === 0) {
-        await bgRepo.save(new Budget(Math.random().toString(), userId, "Food", new Money(4000), 6, 2026));
-        await bgRepo.save(new Budget(Math.random().toString(), userId, "Transport", new Money(3000), 6, 2026));
-        await bgRepo.save(new Budget(Math.random().toString(), userId, "Recharge", new Money(1500), 6, 2026));
+        await bgRepo.save(new Budget(crypto.randomUUID(), userId, "Food", new Money(4000), 6, 2026));
+        await bgRepo.save(new Budget(crypto.randomUUID(), userId, "Transport", new Money(3000), 6, 2026));
+        await bgRepo.save(new Budget(crypto.randomUUID(), userId, "Recharge", new Money(1500), 6, 2026));
       }
 
       const existingGoals = await glRepo.findByUserId(userId);
       if (existingGoals.length === 0) {
-        await glRepo.save(new Goal(Math.random().toString(), userId, "Emergency Fund", new Money(50000), new Money(2000), null));
-        await glRepo.save(new Goal(Math.random().toString(), userId, "Buy Laptop", new Money(60000), new Money(5000), null));
+        await glRepo.save(new Goal(crypto.randomUUID(), userId, "Emergency Fund", new Money(50000), new Money(2000), null));
+        await glRepo.save(new Goal(crypto.randomUUID(), userId, "Buy Laptop", new Money(60000), new Money(5000), null));
       }
 
       if (typeof window !== "undefined") {

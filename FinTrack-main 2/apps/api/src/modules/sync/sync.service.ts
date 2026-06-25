@@ -121,13 +121,21 @@ export class SyncService {
           txType = "EXPENSE";
         }
 
+        let goalId = t.goalId || null;
+        if (goalId) {
+          const isGoalUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(goalId);
+          if (!isGoalUuid) {
+            goalId = null;
+          }
+        }
+
         await this.prisma.transaction.upsert({
           where: { id: t.id },
           create: {
             id: t.id,
             userId: dbUserId,
             categoryId: categoryId,
-            goalId: t.goalId || null,
+            goalId: goalId,
             title: t.title,
             description: t.description || null,
             amount: t.amount?.amount || 0,
@@ -141,7 +149,7 @@ export class SyncService {
           },
           update: {
             categoryId: categoryId,
-            goalId: t.goalId || null,
+            goalId: goalId,
             title: t.title,
             description: t.description || null,
             amount: t.amount?.amount || 0,
@@ -153,6 +161,7 @@ export class SyncService {
             updatedAt: new Date(),
           },
         });
+
       }
     }
 

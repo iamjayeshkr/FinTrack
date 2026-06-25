@@ -1,0 +1,33 @@
+# Ignore duplicate backup workspace entirely
+FinTrack-main 2/
+
+# Ignore node modules
+node_modules/
+**/node_modules/
+
+# Ignore build outputs
+dist/
+**/dist/
+.next/
+**/.next/
+out/
+**/out/
+
+# Ignore turbo cache
+.turbo/
+**/.turbo/
+
+# Ignore env files (Vercel uses Web UI to define these)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.*
+
+# Ignore logs
+*.log
+
+# Ignore OS files
+.DS_Store
