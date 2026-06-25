@@ -44,7 +44,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const { user, isLoaded } = useUser();
   const [currentPlan, setCurrentPlan] = useState<"free" | "pro">("free");
   const [dbSize, setDbSize] = useState<string>("2.4 KB");
@@ -83,7 +83,20 @@ export default function Sidebar() {
   if (pathname === "/") return null;
 
   return (
-    <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-[#E9ECF5] bg-white flex flex-col shrink-0 select-none z-20">
+    <>
+      {/* Mobile Sidebar Overlay Backdrop */}
+      {isOpen && (
+        <div 
+          onClick={onClose}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden animate-fade-in"
+        />
+      )}
+
+      <aside className={`
+        fixed inset-y-0 left-0 w-64 bg-white border-r border-[#E9ECF5] flex flex-col shrink-0 select-none z-50
+        transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:flex
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}
+      `}>
       
       {/* Workspace Switcher */}
       <div className="p-4 border-b border-[#E9ECF5]">
@@ -135,6 +148,7 @@ export default function Sidebar() {
             <Link
               key={href}
               href={href}
+              onClick={onClose}
               className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 relative group ${
                 active
                   ? "text-[#6D5DFC] bg-[#F7F8FC]"
@@ -190,6 +204,7 @@ export default function Sidebar() {
             </p>
             <Link
               href="/billing"
+              onClick={onClose}
               className="block text-center w-full py-1.5 bg-[#6D5DFC] hover:bg-[#8B7CFF] text-white font-bold rounded-lg shadow-sm transition-all duration-200 text-[10px]"
             >
               Upgrade Space
@@ -239,6 +254,7 @@ export default function Sidebar() {
         )}
       </div>
 
-    </aside>
+      </aside>
+    </>
   );
 }

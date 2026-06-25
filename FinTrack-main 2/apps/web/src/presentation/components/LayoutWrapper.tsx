@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import Sidebar from "./Sidebar";
@@ -10,6 +10,7 @@ import { SyncService } from "../../application/services/sync-service";
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, isLoaded } = useUser();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const isLandingPage = pathname === "/";
 
   useEffect(() => {
@@ -37,12 +38,12 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
   return (
     <div className="flex h-screen w-screen overflow-hidden flex-col md:flex-row bg-[#f8fafc]">
       {/* Sidebar Navigation */}
-      <Sidebar />
+      <Sidebar isOpen={isMobileSidebarOpen} onClose={() => setIsMobileSidebarOpen(false)} />
       
       {/* Main Workspace */}
       <main className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
         {/* Global Header */}
-        <GlobalHeader />
+        <GlobalHeader onOpenMenu={() => setIsMobileSidebarOpen(true)} />
         
         {/* Scrollable Workspace Content */}
         <div className="flex-1 overflow-y-auto bg-[#f8fafc]">
@@ -52,3 +53,4 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     </div>
   );
 }
+
