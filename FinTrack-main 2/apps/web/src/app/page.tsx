@@ -32,7 +32,18 @@ import {
   X,
   ArrowUpRight,
   ShieldCheck,
-  Cpu
+  Cpu,
+  Laptop,
+  Code,
+  Lightbulb,
+  Search,
+  Brain,
+  FileText,
+  Rocket,
+  WifiOff,
+  Smartphone,
+  Monitor,
+  Mail
 } from "lucide-react";
 
 // Interactive Heatmap Component (Light Mode)
@@ -204,15 +215,12 @@ function LandingPage() {
           
           {/* Logo brand */}
           <div className="flex items-center gap-2.5 select-none group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[#6D5DFC] to-[#8B7CFF] flex items-center justify-center shadow-md shadow-[#6D5DFC]/10 group-hover:scale-105 transition-transform duration-200">
-              <svg className="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-extrabold text-lg tracking-tight text-[#0A0D14] leading-none">FinTrack</span>
-              <span className="text-[7px] text-[#6D5DFC] font-mono tracking-widest uppercase mt-0.5">WEALTH OS</span>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src="/logo.png" 
+              alt="FinTrack Logo" 
+              className="h-10 object-contain group-hover:scale-105 transition-transform duration-200"
+            />
           </div>
 
           {/* Navigation Links */}
@@ -221,6 +229,7 @@ function LandingPage() {
             <a href="#problem" className="hover:text-[#6D5DFC] transition-colors">Solutions</a>
             <a href="#security" className="hover:text-[#6D5DFC] transition-colors">Security</a>
             <a href="#pricing" className="hover:text-[#6D5DFC] transition-colors">Pricing</a>
+            <a href="#about" className="hover:text-[#6D5DFC] transition-colors">About Us</a>
             <a href="#logo-concepts" className="hover:text-[#6D5DFC] transition-colors">Brand Identity</a>
           </nav>
 
@@ -863,14 +872,12 @@ function LandingPage() {
             
             <div className="h-28 bg-[#F7F8FC] rounded-xl border border-slate-200 flex items-center justify-center select-none relative overflow-hidden">
               <div className="absolute inset-0 bg-grid-pattern opacity-[0.02]"></div>
-              <div className="flex items-center gap-3 relative z-10">
-                <div className="w-10 h-10 rounded-xl bg-[#6D5DFC] flex items-center justify-center shadow-md shadow-[#6D5DFC]/10">
-                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                  </svg>
-                </div>
-                <span className="font-extrabold text-xl text-[#0A0D14] tracking-tight">FinTrack</span>
-              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src="/logo.png" 
+                alt="FinTrack Approved Logo" 
+                className="h-20 object-contain relative z-10"
+              />
             </div>
             
             <h4 className="font-extrabold text-[#0A0D14] text-sm">The Ascent Path</h4>
@@ -1123,6 +1130,495 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* About Us Section */}
+      <section id="about" className="py-24 px-6 max-w-6xl mx-auto w-full space-y-16 relative z-10 border-t border-[#E9ECF5]">
+        
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          
+          {/* Left Column: Text & Features List */}
+          <div className="lg:col-span-4 flex flex-col justify-between space-y-6">
+            <div className="space-y-4">
+              <div className="inline-block bg-[#6D5DFC]/10 text-[#6D5DFC] px-3 py-1 rounded-full text-[9px] font-black tracking-widest uppercase">
+                About Us
+              </div>
+              <h3 className="text-3xl font-black tracking-tight text-[#0A0D14] leading-tight">
+                About <span className="text-[#6D5DFC]">FinTrack</span>
+              </h3>
+              <p className="text-slate-700 text-xs font-semibold leading-relaxed">
+                FinTrack is a personal finance and wealth management platform built to help you take control of your financial future.
+              </p>
+              <p className="text-slate-500 text-xs font-medium leading-relaxed">
+                We believe managing money should be simple, intelligent, and private. FinTrack brings everything you need—expenses, budgets, goals, reports, and AI advice—into one secure dashboard that works online and offline.
+              </p>
+            </div>
+
+            {/* Feature Grid */}
+            <div className="grid grid-cols-2 gap-4 pt-4">
+              <div className="flex gap-2.5 items-start">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <Wallet className="w-4 h-4 text-[#6D5DFC]" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-[10px] text-slate-800 leading-tight">Expense Tracking</h4>
+                  <p className="text-[8px] text-slate-400 font-semibold mt-0.5 leading-normal">Track every penny in real-time</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 items-start">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <Activity className="w-4 h-4 text-[#6D5DFC]" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-[10px] text-slate-800 leading-tight">Smart Reports</h4>
+                  <p className="text-[8px] text-slate-400 font-semibold mt-0.5 leading-normal">Visualize. Analyze. Improve.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 items-start">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <TrendingUp className="w-4 h-4 text-[#6D5DFC]" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-[10px] text-slate-800 leading-tight">Budget Planning</h4>
+                  <p className="text-[8px] text-slate-400 font-semibold mt-0.5 leading-normal">Plan better. Spend smarter.</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 items-start">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <FileText className="w-4 h-4 text-[#6D5DFC]" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-[10px] text-slate-800 leading-tight">Invoice Generation</h4>
+                  <p className="text-[8px] text-slate-400 font-semibold mt-0.5 leading-normal">Create & send professional invoices</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 items-start">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <Check className="w-4 h-4 text-[#6D5DFC]" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-[10px] text-slate-800 leading-tight">Goal Management</h4>
+                  <p className="text-[8px] text-slate-400 font-semibold mt-0.5 leading-normal">Set goals and achieve more</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 items-start">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <Layers className="w-4 h-4 text-[#6D5DFC]" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-[10px] text-slate-800 leading-tight">Multi-device Sync</h4>
+                  <p className="text-[8px] text-slate-400 font-semibold mt-0.5 leading-normal">Access anywhere, anytime</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 items-start">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-[#6D5DFC]" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-[10px] text-slate-800 leading-tight">AI Financial Advisor</h4>
+                  <p className="text-[8px] text-slate-400 font-semibold mt-0.5 leading-normal">Offline AI insights & guidance</p>
+                </div>
+              </div>
+
+              <div className="flex gap-2.5 items-start">
+                <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4 text-[#6D5DFC]" />
+                </div>
+                <div>
+                  <h4 className="font-extrabold text-[10px] text-slate-800 leading-tight">Privacy First</h4>
+                  <p className="text-[8px] text-slate-400 font-semibold mt-0.5 leading-normal">Your data is 100% yours</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Center Column: Dashboard Mockup */}
+          <div className="lg:col-span-5 flex justify-center items-center">
+            <div className="w-full bg-white border border-[#E9ECF5] rounded-2xl shadow-xl overflow-hidden flex flex-col relative aspect-[16/11.5] max-w-lg">
+              
+              {/* Browser window titlebar */}
+              <div className="px-4 py-2.5 bg-slate-50 border-b border-[#E9ECF5] flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-400/80"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-400/80"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/80"></span>
+                </div>
+                <div className="px-3 py-1 bg-white border border-[#E9ECF5] rounded-md text-[8px] text-slate-455 font-mono w-44 text-center truncate font-bold">
+                  fintrack.io/dashboard
+                </div>
+                <div className="w-8"></div>
+              </div>
+
+              {/* Internal layout */}
+              <div className="flex-1 flex overflow-hidden">
+                
+                {/* Mockup Sidebar */}
+                <div className="w-28 bg-[#F7F8FC]/60 border-r border-[#E9ECF5] p-2 flex flex-col gap-3 shrink-0 justify-between">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-1 px-1 pb-1">
+                      <div className="w-3.5 h-3.5 rounded bg-[#6D5DFC] flex items-center justify-center text-[10px] text-white">
+                        <svg className="w-2.5.2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                      </div>
+                      <span className="font-extrabold text-[8.5px] text-[#0A0D14] tracking-tight">FinTrack</span>
+                    </div>
+
+                    <ul className="space-y-1 text-[7.5px] font-bold text-slate-500">
+                      <li className="flex items-center gap-1.5 px-1.5 py-1 bg-indigo-50 border border-[#E9ECF5] text-[#6D5DFC] rounded shadow-sm">
+                        <span>🏠</span> Overview
+                      </li>
+                      <li className="flex items-center gap-1.5 px-1.5 py-1 rounded">
+                        <span>📖</span> Transactions
+                      </li>
+                      <li className="flex items-center gap-1.5 px-1.5 py-1 rounded">
+                        <span>✉️</span> Budgets
+                      </li>
+                      <li className="flex items-center gap-1.5 px-1.5 py-1 rounded">
+                        <span>🎯</span> Goals <span className="bg-[#6D5DFC]/10 text-[#6D5DFC] text-[5px] px-0.5 rounded ml-auto">PRO</span>
+                      </li>
+                      <li className="flex items-center gap-1.5 px-1.5 py-1 rounded">
+                        <span>💬</span> AI Advisor
+                      </li>
+                      <li className="flex items-center gap-1.5 px-1.5 py-1 rounded">
+                        <span>📊</span> Reports
+                      </li>
+                      <li className="flex items-center gap-1.5 px-1.5 py-1 rounded">
+                        <span>📄</span> Invoices
+                      </li>
+                      <li className="flex items-center gap-1.5 px-1.5 py-1 rounded">
+                        <span>⚙️</span> Settings
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-[#6D5DFC]/5 border border-[#6D5DFC]/10 rounded p-1.5 text-center">
+                    <p className="text-[6px] text-indigo-700 font-extrabold">Upgrade to Pro</p>
+                    <p className="text-[5px] text-indigo-500 font-bold mt-0.5">Unlock advanced features</p>
+                    <button className="w-full mt-1.5 py-0.5 bg-[#6D5DFC] hover:bg-[#5C4EED] text-white rounded text-[5px] font-black transition-colors">
+                      Upgrade Now
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mockup Main pane */}
+                <div className="flex-1 bg-[#F7F8FC]/40 p-3 space-y-3 overflow-hidden flex flex-col justify-between">
+                  <div className="flex justify-between items-center shrink-0">
+                    <span className="text-[9px] font-black text-[#0A0D14]">Overview</span>
+                    <span className="text-[6px] text-slate-400 font-bold">This 6 Months v</span>
+                  </div>
+
+                  {/* Stat cards */}
+                  <div className="grid grid-cols-2 gap-2 shrink-0">
+                    <div className="border border-[#E9ECF5] p-1.5 rounded bg-white shadow-sm space-y-0.5">
+                      <span className="text-[5.5px] text-slate-400 font-bold uppercase tracking-wider">Net Worth</span>
+                      <div className="text-[9px] font-black text-[#0A0D14]">₹ 8,42,18,930</div>
+                      <span className="text-[5px] text-[#00C875] font-extrabold flex items-center gap-0.5">
+                        ▲ 3.85% <span className="text-slate-400 font-semibold">this month</span>
+                      </span>
+                    </div>
+
+                    <div className="border border-[#E9ECF5] p-1.5 rounded bg-white shadow-sm space-y-0.5">
+                      <span className="text-[5.5px] text-slate-400 font-bold uppercase tracking-wider">Monthly Cash Flow</span>
+                      <div className="text-[9px] font-black text-[#0A0D14]">₹ 2,45,300</div>
+                      <span className="text-[5px] text-[#00C875] font-extrabold flex items-center gap-0.5">
+                        ▲ 18.6% <span className="text-slate-400 font-semibold">this month</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Chart */}
+                  <div className="border border-[#E9ECF5] rounded p-1.5 bg-white shadow-sm flex-1 flex flex-col justify-between min-h-0">
+                    <div className="flex justify-between items-center text-[5.5px] font-bold text-slate-400 pb-1 border-b border-[#F7F8FC]">
+                      <span>Net Worth Overview</span>
+                    </div>
+                    <div className="flex-1 relative flex items-end pt-1">
+                      <svg className="w-full h-full text-[#6D5DFC]" viewBox="0 0 100 30" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#6D5DFC" stopOpacity="0.2"/>
+                            <stop offset="100%" stopColor="#6D5DFC" stopOpacity="0.0"/>
+                          </linearGradient>
+                        </defs>
+                        <path d="M 0,25 Q 15,22 30,15 T 60,18 T 90,8 T 100,5" fill="none" stroke="#6D5DFC" strokeWidth="1.2" />
+                        <path d="M 0,25 Q 15,22 30,15 T 60,18 T 90,8 T 100,5 L 100,30 L 0,30 Z" fill="url(#chartGrad)" />
+                      </svg>
+                    </div>
+                    <div className="flex justify-between text-[4.5px] text-slate-400 font-mono mt-1 select-none font-bold">
+                      <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+                    </div>
+                  </div>
+
+                  {/* Bottom widget row */}
+                  <div className="grid grid-cols-2 gap-2 shrink-0">
+                    
+                    {/* Budget Progress Card */}
+                    <div className="border border-[#E9ECF5] p-1.5 rounded bg-white shadow-sm flex items-center gap-2">
+                      <div className="relative w-8 h-8 shrink-0">
+                        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 32 32">
+                          <circle cx="16" cy="16" r="12" fill="transparent" stroke="#E9ECF5" strokeWidth="2.5" />
+                          <circle cx="16" cy="16" r="12" fill="transparent" stroke="#6D5DFC" strokeWidth="2.5" strokeDasharray="54.3 75.4" />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center text-[6px] font-black text-slate-800 font-mono">72%</div>
+                      </div>
+                      <div className="text-[5.5px] font-semibold text-slate-500 space-y-0.5 leading-tight">
+                        <div className="font-extrabold text-[6.5px] text-slate-800">Budget Progress</div>
+                        <div>Total: ₹3,40,000</div>
+                        <div>Used: ₹2,44,800</div>
+                      </div>
+                    </div>
+
+                    {/* Top Spending Categories Card */}
+                    <div className="border border-[#E9ECF5] p-1.5 rounded bg-white shadow-sm text-[5.5px] space-y-1">
+                      <div className="font-extrabold text-slate-800 text-[6.5px] pb-0.5 border-b border-slate-100">Top Spending Category</div>
+                      <div className="space-y-0.5 font-medium">
+                        <div className="flex justify-between"><span>Housing</span><span className="font-bold text-slate-800">₹1,15,000</span></div>
+                        <div className="flex justify-between"><span>Food & Dining</span><span className="font-bold text-slate-800">₹45,600</span></div>
+                        <div className="flex justify-between"><span>Transport</span><span className="font-bold text-slate-800">₹18,750</span></div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Profile Card */}
+          <div className="lg:col-span-3 flex justify-center items-center">
+            <div className="w-full bg-white border border-[#E9ECF5] rounded-2xl shadow-xl p-5 space-y-4 max-w-xs flex flex-col justify-between h-full">
+              <div className="space-y-4 flex-1">
+                
+                {/* Profile Pic */}
+                <div className="flex justify-center pt-2">
+                  <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-indigo-100 shadow-sm relative bg-slate-100">
+                    <img 
+                      src="/profile.png" 
+                      alt="Jayesh Kumar" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80";
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Identity */}
+                <div className="text-center space-y-1">
+                  <h3 className="font-black text-slate-800 text-sm">Jayesh Kumar</h3>
+                  <p className="text-[10px] text-[#6D5DFC] font-extrabold uppercase tracking-wider">Founder & Developer</p>
+                </div>
+
+                {/* Subdetails */}
+                <div className="space-y-2 text-[9px] font-bold text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <Laptop className="w-3.5 h-3.5 text-[#6D5DFC] shrink-0" />
+                    <span>Software Engineer</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Building className="w-3.5 h-3.5 text-[#6D5DFC] shrink-0" />
+                    <span>ERP Executive @ Bhagyadeep Cables</span>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <p className="text-[10px] text-slate-450 font-semibold leading-relaxed text-center">
+                  Passionate about building products that solve real problems. FinTrack is my mission to make personal finance simple, intelligent and accessible for everyone.
+                </p>
+              </div>
+
+              <div className="space-y-4 pt-2">
+                {/* Social Links */}
+                <div className="flex items-center justify-center gap-3">
+                  <a 
+                    href="https://github.com" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="w-7 h-7 rounded border border-slate-200 hover:border-[#6D5DFC] flex items-center justify-center text-slate-400 hover:text-[#6D5DFC] transition-all bg-white"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+                      <path d="M9 18c-4.51 2-5-2-7-2" />
+                    </svg>
+                  </a>
+                  <a 
+                    href="https://linkedin.com" 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="w-7 h-7 rounded border border-slate-200 hover:border-[#6D5DFC] flex items-center justify-center text-slate-400 hover:text-[#6D5DFC] transition-all bg-white"
+                  >
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+                      <rect width="4" height="12" x="2" y="9" />
+                      <circle cx="4" cy="4" r="2" />
+                    </svg>
+                  </a>
+                  <a 
+                    href="mailto:jayesh@fintrack.io"
+                    className="w-7 h-7 rounded border border-slate-200 hover:border-[#6D5DFC] flex items-center justify-center text-slate-400 hover:text-[#6D5DFC] transition-all bg-white"
+                  >
+                    <Mail className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+
+                {/* Quote Box */}
+                <div className="bg-[#6D5DFC]/5 border border-[#6D5DFC]/10 rounded-xl p-3 relative text-center">
+                  <span className="text-xl text-[#8B7CFF] font-serif leading-none absolute left-2.5 top-1 font-black">&ldquo;</span>
+                  <p className="text-[9.5px] text-indigo-900 font-extrabold italic px-2 py-0.5">
+                    Technology should simplify finance, not complicate it.
+                  </p>
+                  <span className="text-xl text-[#8B7CFF] font-serif leading-none absolute right-2.5 bottom-1 font-black">&rdquo;</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Journey & Stats Split */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-12 border-t border-[#E9ECF5]/60">
+          
+          {/* Left: Journey Timeline */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="space-y-1 text-left">
+              <h4 className="text-xl font-black text-slate-800 tracking-tight">Our Journey So Far</h4>
+              <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">From an idea to a complete Wealth OS.</p>
+            </div>
+
+            {/* Horizontal timeline cards */}
+            <div className="relative">
+              {/* Connecting line */}
+              <div className="absolute top-6 left-6 right-6 h-0.5 bg-[#E9ECF5] z-0 hidden sm:block"></div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-6 gap-4 relative z-10">
+                
+                {/* Milestone 1 */}
+                <div className="space-y-2 flex flex-col items-center sm:items-start text-center sm:text-left">
+                  <div className="w-11 h-11 rounded-full bg-white border border-[#E9ECF5] shadow-sm flex items-center justify-center shrink-0">
+                    <Lightbulb className="w-5 h-5 text-[#6D5DFC]" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-[9px] text-[#0A0D14]">2025 The Idea</h4>
+                    <p className="text-[7.5px] text-slate-400 font-semibold mt-0.5 leading-tight">Frustration with complex finance apps</p>
+                  </div>
+                </div>
+
+                {/* Milestone 2 */}
+                <div className="space-y-2 flex flex-col items-center sm:items-start text-center sm:text-left">
+                  <div className="w-11 h-11 rounded-full bg-white border border-[#E9ECF5] shadow-sm flex items-center justify-center shrink-0">
+                    <Search className="w-5 h-5 text-[#6D5DFC]" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-[9px] text-[#0A0D14]">Research</h4>
+                    <p className="text-[7.5px] text-slate-400 font-semibold mt-0.5 leading-tight">Studied user needs & industry gaps</p>
+                  </div>
+                </div>
+
+                {/* Milestone 3 */}
+                <div className="space-y-2 flex flex-col items-center sm:items-start text-center sm:text-left">
+                  <div className="w-11 h-11 rounded-full bg-white border border-[#E9ECF5] shadow-sm flex items-center justify-center shrink-0">
+                    <Code className="w-5 h-5 text-[#6D5DFC]" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-[9px] text-[#0A0D14]">First Prototype</h4>
+                    <p className="text-[7.5px] text-slate-400 font-semibold mt-0.5 leading-tight">Built the core expense tracker</p>
+                  </div>
+                </div>
+
+                {/* Milestone 4 */}
+                <div className="space-y-2 flex flex-col items-center sm:items-start text-center sm:text-left">
+                  <div className="w-11 h-11 rounded-full bg-white border border-[#E9ECF5] shadow-sm flex items-center justify-center shrink-0">
+                    <Brain className="w-5 h-5 text-[#6D5DFC]" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-[9px] text-[#0A0D14]">AI Advisor</h4>
+                    <p className="text-[7.5px] text-slate-400 font-semibold mt-0.5 leading-tight">Added offline AI financial insights</p>
+                  </div>
+                </div>
+
+                {/* Milestone 5 */}
+                <div className="space-y-2 flex flex-col items-center sm:items-start text-center sm:text-left">
+                  <div className="w-11 h-11 rounded-full bg-white border border-[#E9ECF5] shadow-sm flex items-center justify-center shrink-0">
+                    <FileText className="w-5 h-5 text-[#6D5DFC]" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-[9px] text-[#0A0D14]">Invoice System</h4>
+                    <p className="text-[7.5px] text-slate-400 font-semibold mt-0.5 leading-tight">Built smart invoicing & client management</p>
+                  </div>
+                </div>
+
+                {/* Milestone 6 */}
+                <div className="space-y-2 flex flex-col items-center sm:items-start text-center sm:text-left">
+                  <div className="w-11 h-11 rounded-full bg-white border border-[#E9ECF5] shadow-sm flex items-center justify-center shrink-0">
+                    <Rocket className="w-5 h-5 text-[#6D5DFC]" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-[9px] text-[#0A0D14]">Wealth OS</h4>
+                    <p className="text-[7.5px] text-slate-400 font-semibold mt-0.5 leading-tight">Evolving into a complete financial ecosystem</p>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          {/* Right: FinTrack by the Numbers */}
+          <div className="lg:col-span-6 space-y-6">
+            <div className="space-y-1 text-left">
+              <h4 className="text-xl font-black text-slate-800 tracking-tight">FinTrack by the Numbers</h4>
+              <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider">A growing platform trusted by users worldwide.</p>
+            </div>
+
+            {/* Stats list */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              
+              <div className="bg-white border border-[#E9ECF5] rounded-xl p-3.5 space-y-1 shadow-sm text-left">
+                <Sparkles className="w-4.5 h-4.5 text-[#6D5DFC]" />
+                <div className="text-base font-black text-[#0A0D14]">100+</div>
+                <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wide">Features Planned</div>
+              </div>
+
+              <div className="bg-white border border-[#E9ECF5] rounded-xl p-3.5 space-y-1 shadow-sm text-left">
+                <Layers className="w-4.5 h-4.5 text-[#6D5DFC]" />
+                <div className="text-base font-black text-[#0A0D14]">15+</div>
+                <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wide">Major Modules</div>
+              </div>
+
+              <div className="bg-white border border-[#E9ECF5] rounded-xl p-3.5 space-y-1 shadow-sm text-left">
+                <Cpu className="w-4.5 h-4.5 text-[#6D5DFC]" />
+                <div className="text-[8px] font-black text-[#0A0D14] uppercase leading-snug">AI Powered</div>
+                <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wide">Smart & Offline</div>
+              </div>
+
+              <div className="bg-white border border-[#E9ECF5] rounded-xl p-3.5 space-y-1 shadow-sm text-left">
+                <WifiOff className="w-4.5 h-4.5 text-[#6D5DFC]" />
+                <div className="text-[8px] font-black text-[#0A0D14] uppercase leading-snug">Offline First</div>
+                <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wide">Works Anywhere</div>
+              </div>
+
+              <div className="bg-white border border-[#E9ECF5] rounded-xl p-3.5 space-y-1 shadow-sm text-left">
+                <Lock className="w-4.5 h-4.5 text-[#6D5DFC]" />
+                <div className="text-[8px] font-black text-[#0A0D14] uppercase leading-snug">End-to-End</div>
+                <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wide">Encryption 100% Secure</div>
+              </div>
+
+              <div className="bg-white border border-[#E9ECF5] rounded-xl p-3.5 space-y-1 shadow-sm text-left">
+                <Smartphone className="w-4.5 h-4.5 text-[#6D5DFC]" />
+                <div className="text-[8px] font-black text-[#0A0D14] uppercase leading-snug">Cross Platform</div>
+                <div className="text-[8px] font-extrabold text-slate-400 uppercase tracking-wide">Web, iOS, Android</div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
       {/* Modern SaaS Pricing Section */}
       <section id="pricing" className="py-24 px-6 bg-slate-50/50 border-y border-[#E9ECF5] w-full relative z-10">
         <div className="max-w-6xl mx-auto space-y-16">
@@ -1316,12 +1812,12 @@ function LandingPage() {
         <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-4 gap-8 mb-10 text-xs text-slate-500 font-semibold leading-normal">
           <div className="space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="w-6 h-6 rounded bg-[#6D5DFC] flex items-center justify-center text-xs text-white">
-                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                </svg>
-              </div>
-              <span className="font-extrabold text-[#0A0D14] text-base">FinTrack</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src="/logo.png" 
+                alt="FinTrack Logo" 
+                className="h-8 object-contain"
+              />
             </div>
             <p className="text-[10px] text-slate-400 font-semibold leading-relaxed">The Personal Wealth Operating System engineered for founders, software developers, and builders.</p>
           </div>
@@ -1346,7 +1842,7 @@ function LandingPage() {
           <div>
             <h4 className="font-bold text-[#0A0D14] text-[10px] uppercase tracking-wider mb-3">Company</h4>
             <ul className="space-y-2 text-[10px] text-slate-400">
-              <li><span className="hover:text-[#6D5DFC] cursor-pointer">About Us</span></li>
+              <li><a href="#about" className="hover:text-[#6D5DFC] cursor-pointer">About Us</a></li>
               <li><span className="hover:text-[#6D5DFC] cursor-pointer">Careers</span></li>
               <li><span className="hover:text-[#6D5DFC] cursor-pointer">Terms of Service</span></li>
               <li><span className="hover:text-[#6D5DFC] cursor-pointer">Contact Desk</span></li>

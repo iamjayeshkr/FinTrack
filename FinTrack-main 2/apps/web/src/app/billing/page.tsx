@@ -3,121 +3,91 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useUser } from "@clerk/nextjs";
 import {
-  Check,
-  Shield,
-  Zap,
-  Receipt,
-  Download,
-  RefreshCw,
-  Star,
-  Info,
-  Crown,
-  Calendar,
-  X,
-  CheckCircle2,
-  Building,
-  AlertCircle,
-  ArrowRight,
-  Eye,
-  Mail,
-  Printer,
-  ChevronDown
+  Check, Shield, Zap, Receipt, Download, RefreshCw, Star, Info, Crown,
+  Calendar, X, CheckCircle2, Building, AlertCircle, ArrowRight, Eye,
+  Mail, Printer, ChevronDown, FileText, TrendingUp, BarChart3, CreditCard,
+  Lock, Globe, Sparkles
 } from "lucide-react";
 import {
   DocumentGeneratorService,
-  InvoiceData,
-  ReceiptData,
-  InvestmentData,
-  AccountData
+  InvoiceData, ReceiptData, InvestmentData, AccountData
 } from "../../application/services/document-generator";
 
-// Document type options
 type DocType = "INVOICE" | "RECEIPT" | "INVESTMENT" | "ACCOUNT";
+
+const ACCENT_RGB: Record<string, [number, number, number]> = {
+  indigo:  [109,  93, 252],
+  slate:   [ 71,  85, 105],
+  emerald: [ 16, 185, 129],
+  crimson: [239,  68,  68],
+};
+const ACCENT_HEX: Record<string, string> = {
+  indigo:  "#6D5DFC",
+  slate:   "#475569",
+  emerald: "#10B981",
+  crimson: "#EF4444",
+};
 
 export default function BillingPage() {
   const { user } = useUser();
   const userId = user?.id || "user1";
 
-  // Subscription plan states
   const [currentPlan, setCurrentPlan] = useState<"free" | "pro" | "enterprise">("free");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
   const [txCount, setTxCount] = useState(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<"success" | "info" | "warning">("success");
 
-  // Document Console states
   const [consoleTab, setConsoleTab] = useState<"plans" | "documents">("plans");
   const [selectedDocType, setSelectedDocType] = useState<DocType>("INVOICE");
   const [previewTab, setPreviewTab] = useState<"document" | "email">("document");
-  
-  // Customization controls
+
   const [selectedCurrency, setSelectedCurrency] = useState<"INR" | "USD" | "EUR">("INR");
   const [accentTheme, setAccentTheme] = useState<"indigo" | "slate" | "emerald" | "crimson">("indigo");
   const [docStatus, setDocStatus] = useState<string>("PAID");
 
-  // Local storage loaded data
   const [allTransactions, setAllTransactions] = useState<any[]>([]);
   const [allBudgets, setAllBudgets] = useState<any[]>([]);
   const [allGoals, setAllGoals] = useState<any[]>([]);
 
-  // Selected item hooks for templates
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string>("INV-2026-004");
   const [selectedTxId, setSelectedTxId] = useState<string>("");
   const [selectedMonth, setSelectedMonth] = useState<string>("June 2026");
-
   const [isDownloading, setIsDownloading] = useState(false);
 
-  // Load plan and transaction data
   useEffect(() => {
     if (typeof window !== "undefined") {
       const plan = (localStorage.getItem("fintrack_plan") || "free") as "free" | "pro" | "enterprise";
       setCurrentPlan(plan);
-      
       const refreshDB = () => {
         const txData = localStorage.getItem("apex_transactions");
         const bgData = localStorage.getItem("apex_budgets");
         const glData = localStorage.getItem("apex_goals");
-
         if (txData) {
           try {
             const parsed = JSON.parse(txData).filter((t: any) => t.userId === userId);
             setAllTransactions(parsed);
             setTxCount(parsed.length);
-            if (parsed.length > 0 && !selectedTxId) {
-              setSelectedTxId(parsed[0].id);
-            }
-          } catch (e) {
-            console.error(e);
-          }
+            if (parsed.length > 0 && !selectedTxId) setSelectedTxId(parsed[0].id);
+          } catch (e) { console.error(e); }
         }
         if (bgData) {
-          try {
-            const parsed = JSON.parse(bgData).filter((b: any) => b.userId === userId);
-            setAllBudgets(parsed);
-          } catch (e) {}
+          try { setAllBudgets(JSON.parse(bgData).filter((b: any) => b.userId === userId)); } catch (e) {}
         }
         if (glData) {
-          try {
-            const parsed = JSON.parse(glData).filter((g: any) => g.userId === userId);
-            setAllGoals(parsed);
-          } catch (e) {}
+          try { setAllGoals(JSON.parse(glData).filter((g: any) => g.userId === userId)); } catch (e) {}
         }
       };
-      
       refreshDB();
       window.addEventListener("storage", refreshDB);
-      return () => {
-        window.removeEventListener("storage", refreshDB);
-      };
+      return () => window.removeEventListener("storage", refreshDB);
     }
   }, [userId, selectedTxId]);
 
   const showToast = (message: string, type: "success" | "info" | "warning" = "success") => {
     setToastMessage(message);
     setToastType(type);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 4000);
+    setTimeout(() => setToastMessage(null), 4000);
   };
 
   const handleSelectPlan = (plan: "free" | "pro" | "enterprise") => {
@@ -126,94 +96,31 @@ export default function BillingPage() {
       setCurrentPlan(plan);
       window.dispatchEvent(new Event("storage"));
       window.dispatchEvent(new Event("fintrack_plan_changed"));
-      
-      if (plan === "free") {
-        showToast("Successfully downgraded to the Starter Free plan.", "info");
-      } else if (plan === "pro") {
-        showToast("Welcome to FinTrack Pro! Premium wealth management tools unlocked.", "success");
-      } else {
-        showToast("Welcome to FinTrack Enterprise. VIP concierge and priority advisor activated.", "success");
-      }
+      if (plan === "free") showToast("Downgraded to Starter Free.", "info");
+      else if (plan === "pro") showToast("Welcome to FinTrack Pro!", "success");
+      else showToast("Welcome to FinTrack Enterprise.", "success");
     }
   };
 
-  // Mock static invoices
-  const invoices = useMemo(() => {
-    return [
-      {
-        id: "INV-2026-004",
-        date: "Jun 24, 2026",
-        dueDate: "Jun 24, 2026",
-        plan: "Pro Plan (Monthly Subscription)",
-        amount: 799,
-        status: "PAID",
-        paymentMethod: "Visa ending in 4242",
-        transactionId: "TXN-71932014"
-      },
-      {
-        id: "INV-2026-003",
-        date: "May 24, 2026",
-        dueDate: "May 24, 2026",
-        plan: "Pro Plan (Monthly Subscription)",
-        amount: 799,
-        status: "PAID",
-        paymentMethod: "Visa ending in 4242",
-        transactionId: "TXN-61840211"
-      },
-      {
-        id: "INV-2026-002",
-        date: "Apr 24, 2026",
-        dueDate: "Apr 24, 2026",
-        plan: "Pro Plan (Monthly Subscription)",
-        amount: 799,
-        status: "PAID",
-        paymentMethod: "Visa ending in 4242",
-        transactionId: "TXN-50912384"
-      },
-      {
-        id: "INV-2026-005",
-        date: "Jun 24, 2026",
-        dueDate: "Jun 24, 2026",
-        plan: "Enterprise Plan (Monthly Subscription)",
-        amount: 4999,
-        status: "PAID",
-        paymentMethod: "Mastercard ending in 9911",
-        transactionId: "TXN-90214822"
-      }
-    ];
-  }, []);
+  const invoices = useMemo(() => [
+    { id: "INV-2026-004", date: "Jun 24, 2026", dueDate: "Jun 24, 2026", plan: "Pro Plan — Monthly Subscription", amount: 799, paymentMethod: "Visa •••• 4242", transactionId: "TXN-71932014" },
+    { id: "INV-2026-003", date: "May 24, 2026", dueDate: "May 24, 2026", plan: "Pro Plan — Monthly Subscription", amount: 799, paymentMethod: "Visa •••• 4242", transactionId: "TXN-61840211" },
+    { id: "INV-2026-002", date: "Apr 24, 2026", dueDate: "Apr 24, 2026", plan: "Pro Plan — Monthly Subscription", amount: 799, paymentMethod: "Visa •••• 4242", transactionId: "TXN-50912384" },
+    { id: "INV-2026-005", date: "Jun 24, 2026", dueDate: "Jun 24, 2026", plan: "Enterprise Plan — Monthly Subscription", amount: 4999, paymentMethod: "Mastercard •••• 9911", transactionId: "TXN-90214822" },
+  ], []);
 
-  // Theme Accent map
-  const themeAccentHex = useMemo(() => {
-    switch (accentTheme) {
-      case "indigo": return "#6D5DFC";
-      case "slate": return "#475569";
-      case "emerald": return "#10B981";
-      case "crimson": return "#EF4444";
-    }
-  }, [accentTheme]);
+  const themeAccentHex = ACCENT_HEX[accentTheme];
+  const currencySymbol = useMemo(() => ({ INR: "₹", USD: "$", EUR: "€" }[selectedCurrency] ?? "₹"), [selectedCurrency]);
+  const currencyRate = useMemo(() => ({ INR: 1, USD: 1/80, EUR: 1/88 }[selectedCurrency] ?? 1), [selectedCurrency]);
 
-  const currencySymbol = useMemo(() => {
-    switch (selectedCurrency) {
-      case "INR": return "₹";
-      case "USD": return "$";
-      case "EUR": return "€";
-    }
-  }, [selectedCurrency]);
+  const fmtAmt = (n: number) =>
+    `${currencySymbol}${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-  const currencyRate = useMemo(() => {
-    switch (selectedCurrency) {
-      case "INR": return 1;
-      case "USD": return 1/80;
-      case "EUR": return 1/88;
-    }
-  }, [selectedCurrency]);
-
-  // Compile active document data models
   const invoiceData = useMemo<InvoiceData | null>(() => {
     const inv = invoices.find(i => i.id === selectedInvoiceId) || invoices[0];
     if (!inv) return null;
-    
+    const base = Math.round(inv.amount * currencyRate);
+    const platform = Math.round(base * 0.02);
     return {
       id: inv.id,
       date: inv.date,
@@ -223,32 +130,43 @@ export default function BillingPage() {
         name: user?.fullName || "Rudransh Kumar",
         email: user?.primaryEmailAddress?.emailAddress || "client@fintrack.io",
         billingAddress: "Mumbai Corporate Hub, Lower Parel, MH 400013, IN",
-        tier: currentPlan
+        tier: currentPlan,
+        customerId: `CUS-${userId.slice(0, 8).toUpperCase()}`,
+        accountNumber: `ACC-${selectedInvoiceId.slice(-3)}-IN`,
+        taxRegion: "India (GST)",
+        country: "India",
       },
       items: [
         {
           description: inv.plan,
-          category: "Subscription Billing",
+          category: "SaaS Subscription",
           quantity: 1,
-          unitPrice: Math.round(inv.amount * currencyRate),
+          unitPrice: base,
           taxRate: 0.18,
-          amount: Math.round(inv.amount * currencyRate)
-        }
+          amount: base,
+        },
+        {
+          description: "Platform Infrastructure Fee",
+          category: "Service Charge",
+          quantity: 1,
+          unitPrice: platform,
+          taxRate: 0.18,
+          amount: platform,
+        },
       ],
       currency: selectedCurrency,
       paymentMethod: inv.paymentMethod,
       transactionId: inv.transactionId,
       discount: 0,
-      processingFee: 0
+      processingFee: 0,
     };
-  }, [selectedInvoiceId, invoices, user, currentPlan, selectedCurrency, currencyRate, docStatus]);
+  }, [selectedInvoiceId, invoices, user, currentPlan, selectedCurrency, currencyRate, docStatus, userId]);
 
   const receiptData = useMemo<ReceiptData | null>(() => {
-    const tx = allTransactions.find(t => t.id === selectedTxId) || allTransactions[0];
+    const tx = allTransactions.find((t: any) => t.id === selectedTxId) || allTransactions[0];
     if (!tx) return null;
-
     return {
-      id: `RCP-2026-${tx.id.substring(0, 4).toUpperCase()}`,
+      id: `RCP-2026-${tx.id.slice(0, 8).toUpperCase()}`,
       date: new Date(tx.date).toLocaleDateString("en-IN", { dateStyle: "medium" }),
       title: tx.title,
       amount: Math.round(tx.amount.amount * currencyRate),
@@ -256,99 +174,89 @@ export default function BillingPage() {
       category: tx.categoryId,
       paymentMethod: tx.paymentMethod,
       status: docStatus === "PAID" ? "Paid" : "Pending",
-      notes: tx.description || "Standard ledger validation debit.",
-      location: tx.location || "Local Sync Node, Mumbai, IN",
-      customer: {
-        name: user?.fullName || "Rudransh Kumar",
-        email: user?.primaryEmailAddress?.emailAddress || "client@fintrack.io",
-        billingAddress: "Mumbai Corporate Hub, Lower Parel, MH 400013, IN"
-      },
-      transactionId: `TXN-LEDG-${tx.id.substring(0, 8).toUpperCase()}`
-    };
-  }, [selectedTxId, allTransactions, user, selectedCurrency, currencyRate, docStatus]);
-
-  const investmentData = useMemo<InvestmentData | null>(() => {
-    const allocations = allGoals.map(g => ({
-      goalTitle: g.title,
-      target: Math.round(g.targetAmount.amount * currencyRate),
-      saved: Math.round(g.currentAmount.amount * currencyRate),
-      percent: Math.round((g.currentAmount.amount / g.targetAmount.amount) * 100)
-    }));
-
-    const totalInvested = allTransactions
-      .filter(t => t.type === "INVESTMENT" || t.type === "SAVINGS")
-      .reduce((sum, t) => sum + t.amount.amount, 0);
-
-    return {
-      id: "STM-2026-INV06",
-      date: "Jun 24, 2026",
-      period: "May 24, 2026 - Jun 24, 2026",
+      notes: tx.description || "Standard ledger expense entry.",
+      location: tx.location || "Online — India",
       customer: {
         name: user?.fullName || "Rudransh Kumar",
         email: user?.primaryEmailAddress?.emailAddress || "client@fintrack.io",
         billingAddress: "Mumbai Corporate Hub, Lower Parel, MH 400013, IN",
-        tier: currentPlan
+        customerId: `CUS-${userId.slice(0, 8).toUpperCase()}`,
+        taxRegion: "India (GST)",
+      },
+      transactionId: `TXN-LEDG-${tx.id.slice(0, 8).toUpperCase()}`,
+    };
+  }, [selectedTxId, allTransactions, user, selectedCurrency, currencyRate, docStatus, userId]);
+
+  const investmentData = useMemo<InvestmentData | null>(() => {
+    const allocations = allGoals.map((g: any) => ({
+      goalTitle: g.title,
+      target: Math.round(g.targetAmount.amount * currencyRate),
+      saved: Math.round(g.currentAmount.amount * currencyRate),
+      percent: Math.round((g.currentAmount.amount / g.targetAmount.amount) * 100),
+      targetDate: g.targetDate ? new Date(g.targetDate).toLocaleDateString("en-IN", { month: "short", year: "numeric" }) : "Dec 2026",
+    }));
+    const totalInvested = allTransactions
+      .filter((t: any) => t.type === "INVESTMENT" || t.type === "SAVINGS")
+      .reduce((sum: number, t: any) => sum + t.amount.amount, 0);
+    return {
+      id: "STM-2026-INV06",
+      date: "Jun 24, 2026",
+      period: "May 24, 2026 – Jun 24, 2026",
+      customer: {
+        name: user?.fullName || "Rudransh Kumar",
+        email: user?.primaryEmailAddress?.emailAddress || "client@fintrack.io",
+        billingAddress: "Mumbai Corporate Hub, Lower Parel, MH 400013, IN",
+        tier: currentPlan,
+        customerId: `CUS-${userId.slice(0, 8).toUpperCase()}`,
+        accountNumber: "PORTFOLIO-8910-IN",
       },
       allocations: allocations.length > 0 ? allocations : [
-        { goalTitle: "Emergency Fund", target: Math.round(50000 * currencyRate), saved: Math.round(2000 * currencyRate), percent: 4 },
-        { goalTitle: "Buy Laptop M4", target: Math.round(60000 * currencyRate), saved: Math.round(5000 * currencyRate), percent: 8 }
+        { goalTitle: "Emergency Fund", target: Math.round(50000 * currencyRate), saved: Math.round(2000 * currencyRate), percent: 4, targetDate: "Dec 2026" },
+        { goalTitle: "MacBook Pro M4", target: Math.round(60000 * currencyRate), saved: Math.round(5000 * currencyRate), percent: 8, targetDate: "Sep 2026" },
       ],
       currency: selectedCurrency,
       totalInvested: Math.round(totalInvested * currencyRate),
       status: docStatus === "PAID" ? "Settled" : "Processing" as any,
-      referenceId: "PORTFOLIO-REF-8910"
+      referenceId: "PORTFOLIO-REF-8910",
     };
-  }, [allGoals, allTransactions, user, currentPlan, selectedCurrency, currencyRate, docStatus]);
+  }, [allGoals, allTransactions, user, currentPlan, selectedCurrency, currencyRate, docStatus, userId]);
 
   const accountData = useMemo<AccountData | null>(() => {
-    // Summarize values
-    let totalIncome = 0;
-    let totalExpenses = 0;
-    let totalSavings = 0;
-
-    const targetMonth = selectedMonth.startsWith("May") ? 4 : 5; // index: May = 4, June = 5
-
-    const monthTxs = allTransactions.filter(t => {
+    const targetMonth = selectedMonth.startsWith("May") ? 4 : 5;
+    const monthTxs = allTransactions.filter((t: any) => {
       const d = new Date(t.date);
       return d.getMonth() === targetMonth && d.getFullYear() === 2026;
     });
-
-    monthTxs.forEach(t => {
+    let totalIncome = 0, totalExpenses = 0, totalSavings = 0;
+    monthTxs.forEach((t: any) => {
       if (t.type === "INCOME") totalIncome += t.amount.amount;
       else if (t.type === "EXPENSE") totalExpenses += t.amount.amount;
       else if (t.type === "SAVINGS" || t.type === "INVESTMENT") totalSavings += t.amount.amount;
     });
-
-    // Budgets
-    const budgetsMap = allBudgets.map(b => {
+    const budgetsMap = allBudgets.map((b: any) => {
       const spent = allTransactions
-        .filter(t => t.categoryId === b.categoryId && t.type === "EXPENSE" && new Date(t.date).getMonth() === targetMonth)
-        .reduce((sum, t) => sum + t.amount.amount, 0);
+        .filter((t: any) => t.categoryId === b.categoryId && t.type === "EXPENSE" && new Date(t.date).getMonth() === targetMonth)
+        .reduce((sum: number, t: any) => sum + t.amount.amount, 0);
       return {
         category: b.categoryId,
         limit: Math.round(b.limitAmount.amount * currencyRate),
         spent: Math.round(spent * currencyRate),
         percentage: Math.round((spent / b.limitAmount.amount) * 100),
-        status: spent > b.limitAmount.amount ? "Breached" : "On Track" as any
+        status: spent > b.limitAmount.amount ? "Breached" : spent / b.limitAmount.amount > 0.8 ? "Warning" : "On Track" as any,
       };
     });
-
-    // Top transactions
     const topSpends = [...monthTxs]
-      .filter(t => t.type === "EXPENSE")
-      .sort((a, b) => b.amount.amount - a.amount.amount)
-      .slice(0, 3)
-      .map(t => ({
-        title: t.title,
-        category: t.categoryId,
+      .filter((t: any) => t.type === "EXPENSE")
+      .sort((a: any, b: any) => b.amount.amount - a.amount.amount)
+      .slice(0, 5)
+      .map((t: any) => ({
+        title: t.title, category: t.categoryId,
         amount: Math.round(t.amount.amount * currencyRate),
-        date: new Date(t.date).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' }),
-        method: t.paymentMethod
+        date: new Date(t.date).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }),
+        method: t.paymentMethod,
       }));
-
     const savingsRate = totalIncome > 0 ? Math.round((totalSavings / totalIncome) * 100) : 0;
     const healthScore = Math.min(100, Math.max(35, Math.round(75 + (savingsRate * 0.25) - ((totalExpenses / (totalIncome || 1)) * 10))));
-
     return {
       id: `STM-2026-ACC0${targetMonth + 1}`,
       date: "Jun 24, 2026",
@@ -358,1032 +266,818 @@ export default function BillingPage() {
         email: user?.primaryEmailAddress?.emailAddress || "client@fintrack.io",
         billingAddress: "Mumbai Corporate Hub, Lower Parel, MH 400013, IN",
         accountNumber: "ACC-XXXX-8902-IN",
-        tier: currentPlan
+        tier: currentPlan,
+        customerId: `CUS-${userId.slice(0, 8).toUpperCase()}`,
+        taxRegion: "India (GST)",
       },
       summary: {
         totalIncome: Math.round(totalIncome * currencyRate),
         totalExpenses: Math.round(totalExpenses * currencyRate),
         netSavings: Math.round(totalSavings * currencyRate),
-        savingsRate: savingsRate,
-        activeBudgetsCount: budgetsMap.length
+        savingsRate, activeBudgetsCount: budgetsMap.length,
       },
       budgets: budgetsMap.length > 0 ? budgetsMap : [
-        { category: "Food", limit: Math.round(4000 * currencyRate), spent: Math.round(1800 * currencyRate), percentage: 45, status: "On Track" },
-        { category: "Rent", limit: Math.round(3000 * currencyRate), spent: Math.round(3000 * currencyRate), percentage: 100, status: "On Track" }
+        { category: "Food", limit: Math.round(4000 * currencyRate), spent: Math.round(1800 * currencyRate), percentage: 45, status: "On Track" as any },
+        { category: "Rent", limit: Math.round(3000 * currencyRate), spent: Math.round(3000 * currencyRate), percentage: 100, status: "Breached" as any },
       ],
       topSpends: topSpends.length > 0 ? topSpends : [
-        { title: "Hostel Shared Room Rent", category: "Rent", amount: Math.round(3000 * currencyRate), date: "02 May", method: "UPI" },
-        { title: "College Mess Food bill", category: "Food", amount: Math.round(1500 * currencyRate), date: "05 May", method: "UPI" }
+        { title: "Hostel Room Rent", category: "Rent", amount: Math.round(3000 * currencyRate), date: "02 May", method: "UPI" },
+        { title: "College Mess Bill", category: "Food", amount: Math.round(1500 * currencyRate), date: "05 May", method: "UPI" },
       ],
       currency: selectedCurrency,
-      healthScore: healthScore
+      healthScore,
     };
-  }, [selectedMonth, allTransactions, allBudgets, user, currentPlan, selectedCurrency, currencyRate]);
+  }, [selectedMonth, allTransactions, allBudgets, user, currentPlan, selectedCurrency, currencyRate, userId]);
 
-  // Handle PDF Generation trigger
   const handleDownloadPDF = async () => {
     setIsDownloading(true);
+    const rgb = ACCENT_RGB[accentTheme];
     try {
       if (selectedDocType === "INVOICE" && invoiceData) {
-        await DocumentGeneratorService.generateInvoicePDF(invoiceData);
-        showToast(`Downloaded Invoice ${invoiceData.id} successfully!`, "success");
+        await DocumentGeneratorService.generateInvoicePDF(invoiceData, rgb);
+        showToast(`Invoice ${invoiceData.id} downloaded.`, "success");
       } else if (selectedDocType === "RECEIPT" && receiptData) {
-        await DocumentGeneratorService.generateReceiptPDF(receiptData);
-        showToast(`Downloaded Receipt ${receiptData.id} successfully!`, "success");
+        await DocumentGeneratorService.generateReceiptPDF(receiptData, rgb);
+        showToast(`Receipt ${receiptData.id} downloaded.`, "success");
       } else if (selectedDocType === "INVESTMENT" && investmentData) {
-        await DocumentGeneratorService.generateInvestmentStatementPDF(investmentData);
-        showToast(`Downloaded Investment Statement ${investmentData.id} successfully!`, "success");
+        await DocumentGeneratorService.generateInvestmentStatementPDF(investmentData, rgb);
+        showToast(`Statement ${investmentData.id} downloaded.`, "success");
       } else if (selectedDocType === "ACCOUNT" && accountData) {
-        await DocumentGeneratorService.generateAccountStatementPDF(accountData);
-        showToast(`Downloaded Account Statement ${accountData.id} successfully!`, "success");
+        await DocumentGeneratorService.generateAccountStatementPDF(accountData, rgb);
+        showToast(`Account statement downloaded.`, "success");
       }
     } catch (e) {
       console.error(e);
-      showToast("Failed to compile and download PDF document.", "warning");
+      showToast("Failed to generate PDF. Please try again.", "warning");
     } finally {
       setIsDownloading(false);
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const activeDocId =
+    selectedDocType === "INVOICE" ? invoiceData?.id :
+    selectedDocType === "RECEIPT" ? receiptData?.id :
+    selectedDocType === "INVESTMENT" ? investmentData?.id :
+    accountData?.id;
+
+  const activeDocLabel: Record<DocType, string> = {
+    INVOICE: "Invoice", RECEIPT: "Receipt",
+    INVESTMENT: "Investment Statement", ACCOUNT: "Account Statement",
   };
 
-  return (
-    <div className="flex-1 min-h-screen bg-[#F7F8FC] p-4 md:p-8 space-y-8 font-sans text-slate-800 selection:bg-indigo-100 print:bg-white print:p-0 print:m-0">
-      
-      {/* Header Banner - hidden in print */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E9ECF5] pb-6 print:hidden">
-        <div className="text-left">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black text-[#0A0D14] tracking-tight">
-              Billing & Documents
-            </h1>
-            <span className="bg-[#6D5DFC]/10 text-[#6D5DFC] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-              V3 Enterprise Core
-            </span>
-          </div>
-          <p className="text-slate-500 text-xs mt-1 font-medium">
-            Manage your subscription plan tiers, pricing matrices, and export Fortune 500-grade financial statements.
-          </p>
-        </div>
+  const docTypeIcon: Record<DocType, React.ReactNode> = {
+    INVOICE: <CreditCard className="w-4 h-4" />,
+    RECEIPT: <Receipt className="w-4 h-4" />,
+    INVESTMENT: <TrendingUp className="w-4 h-4" />,
+    ACCOUNT: <BarChart3 className="w-4 h-4" />,
+  };
 
-        {/* Tab Selection */}
+  const statusCls = (s: string) => {
+    switch (s.toUpperCase()) {
+      case "PAID": return "bg-emerald-50 text-emerald-600 border-emerald-100";
+      case "PENDING": return "bg-amber-50 text-amber-600 border-amber-100";
+      case "FAILED": case "OVERDUE": return "bg-rose-50 text-rose-500 border-rose-100";
+      case "REFUNDED": return "bg-indigo-50 text-indigo-500 border-indigo-100";
+      default: return "bg-slate-50 text-slate-500 border-slate-200";
+    }
+  };
+
+  const invSubtotal = invoiceData?.items.reduce((s, i) => s + i.quantity * i.unitPrice, 0) ?? 0;
+  const invGst = invSubtotal * 0.18 / 1.18;
+  const invTotal = invSubtotal;
+  const rcptGst = (receiptData?.amount ?? 0) * 0.18 / 1.18;
+
+  return (
+    <div className="flex-1 min-h-screen bg-[#F7F8FC] p-4 md:p-8 space-y-8 font-sans text-slate-800 selection:bg-indigo-100 print:bg-white print:p-0">
+
+      {/* Page header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E9ECF5] pb-6 print:hidden">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-black text-[#0A0D14] tracking-tight">Billing & Documents</h1>
+            <span className="bg-[#6D5DFC]/10 text-[#6D5DFC] text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">Enterprise Core</span>
+          </div>
+          <p className="text-slate-500 text-xs mt-1 font-medium">Manage subscriptions and export Fortune 500-grade financial statements.</p>
+        </div>
         <div className="bg-slate-200/50 p-1.5 rounded-2xl border border-[#E9ECF5] flex text-xs font-bold gap-1 self-start">
-          <button
-            onClick={() => setConsoleTab("plans")}
-            className={`px-4 py-2 rounded-xl transition-all ${
-              consoleTab === "plans" 
-                ? "bg-white text-slate-900 shadow-sm" 
-                : "text-slate-500 hover:text-slate-900"
-            }`}
-          >
-            Pricing & Subscriptions
-          </button>
-          <button
-            onClick={() => setConsoleTab("documents")}
-            className={`px-4 py-2 rounded-xl transition-all ${
-              consoleTab === "documents" 
-                ? "bg-white text-slate-900 shadow-sm" 
-                : "text-slate-500 hover:text-slate-900"
-            }`}
-          >
-            Interactive Document Center
-          </button>
+          {(["plans", "documents"] as const).map(tab => (
+            <button key={tab} onClick={() => setConsoleTab(tab)}
+              className={`px-4 py-2 rounded-xl transition-all ${consoleTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-900"}`}>
+              {tab === "plans" ? "Pricing & Subscriptions" : "Document Center"}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* TAB 1: PRICING & SUBSCRIPTIONS */}
+      {/* TAB 1: PLANS */}
       {consoleTab === "plans" && (
         <div className="space-y-8 print:hidden animate-fade-in">
-          {/* Limit gauge consumption */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-[#E9ECF5] flex flex-col justify-between shadow-sm relative overflow-hidden group">
+            <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-[#E9ECF5] flex flex-col justify-between shadow-sm relative overflow-hidden">
               <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] pointer-events-none" />
               <div>
                 <div className="flex items-center justify-between mb-4 relative">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-[#6D5DFC]">
-                      <RefreshCw className="w-4 h-4" />
-                    </div>
+                    <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-[#6D5DFC]"><RefreshCw className="w-4 h-4" /></div>
                     <h3 className="font-bold text-sm text-[#0A0D14]">Active Plan Consumption</h3>
                   </div>
                   <span className="text-slate-400 text-xs font-semibold">Resets next billing cycle</span>
                 </div>
                 <p className="text-slate-500 text-xs mb-6 max-w-lg leading-relaxed relative">
-                  You are utilizing <strong className="text-slate-800">{txCount}</strong> out of the allowed <strong className="text-slate-800">{currentPlan === "free" ? "5" : "unlimited"}</strong> transaction entries under the <span className="font-extrabold text-[#6D5DFC] uppercase">{currentPlan}</span> tier.
+                  Utilizing <strong className="text-slate-800">{txCount}</strong> of <strong className="text-slate-800">{currentPlan === "free" ? "5" : "unlimited"}</strong> transactions under <span className="font-extrabold text-[#6D5DFC] uppercase">{currentPlan}</span>.
                 </p>
-                
                 <div className="space-y-2 relative">
                   <div className="flex justify-between items-end text-xs font-bold text-slate-700">
-                    <span>{currentPlan === "free" ? `${txCount} / 5` : `${txCount} / Unlimited`} Transactions logged</span>
-                    <span className={txCount >= 5 && currentPlan === "free" ? "text-rose-500" : "text-[#6D5DFC]"}>
-                      {currentPlan === "free" ? `${Math.min(100, Math.round((txCount / 5) * 100))}%` : "0.01%"}
-                    </span>
+                    <span>{currentPlan === "free" ? `${txCount} / 5` : `${txCount} / ∞`} Transactions</span>
+                    <span className={txCount >= 5 && currentPlan === "free" ? "text-rose-500" : "text-[#6D5DFC]"}>{currentPlan === "free" ? `${Math.min(100, Math.round((txCount / 5) * 100))}%` : "Unlimited"}</span>
                   </div>
-                  <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden p-0.5 border border-[#E9ECF5]">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-1000 ${
-                        txCount >= 5 && currentPlan === "free" ? "bg-rose-500 shadow-md" : "bg-[#6D5DFC]"
-                      }`}
-                      style={{ width: `${currentPlan === "free" ? Math.min(100, (txCount / 5) * 100) : 10}%` }}
-                    />
+                  <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden border border-[#E9ECF5]">
+                    <div className={`h-full rounded-full transition-all duration-1000 ${txCount >= 5 && currentPlan === "free" ? "bg-rose-500" : "bg-[#6D5DFC]"}`}
+                      style={{ width: `${currentPlan === "free" ? Math.min(100, (txCount / 5) * 100) : 10}%` }} />
                   </div>
                 </div>
               </div>
-              
               <div className="mt-6 pt-6 border-t border-[#E9ECF5] flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative">
                 <div className="flex items-center gap-4 text-xs font-semibold text-slate-500">
-                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#00C875]" /> SSL Encrypted Payments</div>
+                  <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#00C875]" /> SSL Encrypted</div>
                   <div className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 text-[#00C875]" /> Cancel Anytime</div>
                 </div>
                 {currentPlan === "free" && (
-                  <button 
-                    onClick={() => handleSelectPlan("pro")}
-                    className="flex items-center justify-center gap-1.5 bg-[#6D5DFC] hover:bg-[#5C4EED] text-white text-xs font-bold px-4.5 py-2.5 rounded-xl transition-all duration-200 shadow-md shadow-[#6D5DFC]/10 cursor-pointer"
-                  >
-                    Instant Pro Upgrade <ArrowRight className="w-3.5 h-3.5" />
+                  <button onClick={() => handleSelectPlan("pro")} className="flex items-center gap-1.5 bg-[#6D5DFC] hover:bg-[#5C4EED] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-md shadow-[#6D5DFC]/10 transition-all">
+                    Upgrade to Pro <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
             </div>
-
             <div className="p-6 rounded-2xl bg-white border border-[#E9ECF5] flex flex-col justify-between shadow-sm relative overflow-hidden">
               <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none" />
               <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                  <h3 className="font-bold text-sm text-[#0A0D14]">Wealth OS Advantages</h3>
-                </div>
+                <div className="flex items-center gap-2 mb-3"><Star className="w-4 h-4 text-amber-500 fill-amber-500" /><h3 className="font-bold text-sm text-[#0A0D14]">Wealth OS Advantages</h3></div>
                 <ul className="space-y-3 text-xs text-slate-500 font-semibold">
-                  <li className="flex items-start gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0 mt-0.5" /> Unlimited ledger transaction entries.</li>
-                  <li className="flex items-start gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0 mt-0.5" /> Gemini LLM financial diagnostics.</li>
-                  <li className="flex items-start gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0 mt-0.5" /> High-end statement downloads & exports.</li>
+                  <li className="flex items-start gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0 mt-0.5" /> Unlimited ledger entries & history.</li>
+                  <li className="flex items-start gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0 mt-0.5" /> Gemini AI financial diagnostics.</li>
+                  <li className="flex items-start gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0 mt-0.5" /> Fortune 500-grade PDF exports.</li>
                 </ul>
               </div>
               <div className="mt-6 p-3 bg-[#F7F8FC] rounded-xl border border-[#E9ECF5] text-[10px] text-slate-400 font-semibold leading-relaxed">
-                <Info className="w-3.5 h-3.5 text-[#6D5DFC] inline mr-1" /> Need custom pricing licensing terms? Contact corporate support desks.
+                <Info className="w-3.5 h-3.5 text-[#6D5DFC] inline mr-1" /> Need custom licensing? Contact our enterprise desk.
               </div>
             </div>
           </div>
 
-          {/* Pricing cycle toggles */}
-          <div className="flex flex-col items-center justify-center space-y-3 mt-4">
+          <div className="flex flex-col items-center gap-3">
             <span className="text-[10px] font-black text-[#0A0D14] uppercase tracking-wider">Choose Billing Period</span>
-            <div className="bg-slate-200/60 p-1 rounded-2xl border border-[#E9ECF5] flex text-xs relative max-w-xs w-full">
-              <button 
-                onClick={() => setBillingCycle("monthly")}
-                className={`flex-1 py-2 rounded-xl font-bold transition-all ${
-                  billingCycle === "monthly" ? "bg-white text-[#0A0D14] shadow-sm" : "text-slate-500 hover:text-slate-900"
-                }`}
-              >
-                Monthly Rate
-              </button>
-              <button 
-                onClick={() => setBillingCycle("yearly")}
-                className={`flex-1 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1 ${
-                  billingCycle === "yearly" ? "bg-white text-[#0A0D14] shadow-sm" : "text-slate-500 hover:text-slate-900"
-                }`}
-              >
-                Yearly Save 20% <span className="text-[8px] bg-indigo-50 text-[#6D5DFC] font-black px-1 py-0.5 rounded uppercase">Sale</span>
-              </button>
+            <div className="bg-slate-200/60 p-1 rounded-2xl border border-[#E9ECF5] flex text-xs max-w-xs w-full">
+              {(["monthly","yearly"] as const).map(c => (
+                <button key={c} onClick={() => setBillingCycle(c)}
+                  className={`flex-1 py-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1 ${billingCycle === c ? "bg-white text-[#0A0D14] shadow-sm" : "text-slate-500 hover:text-slate-900"}`}>
+                  {c === "monthly" ? "Monthly" : <><span>Yearly</span><span className="text-[8px] bg-indigo-50 text-[#6D5DFC] font-black px-1 py-0.5 rounded uppercase ml-1">-20%</span></>}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {/* Starter Free */}
-            <div className={`p-6 rounded-2xl bg-white border flex flex-col justify-between shadow-sm transition-all ${
-              currentPlan === "free" ? "border-slate-400 ring-4 ring-slate-100" : "border-[#E9ECF5] hover:border-slate-350"
-            }`}>
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Starter Free</span>
-                  {currentPlan === "free" && <span className="text-[9px] bg-slate-100 text-slate-600 font-bold px-2 py-0.5 rounded-full uppercase">Active</span>}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { key: "free", name: "Starter", price: 0, desc: "For personal budgeting", badge: null, features: ["5 transactions/month","Basic charts","Local storage only","Standard PDF export"] },
+              { key: "pro", name: "Pro", price: billingCycle === "monthly" ? 799 : 639, desc: "For serious wealth builders", badge: "Most Popular", features: ["Unlimited transactions","AI financial advisor","Premium PDF exports","Multi-currency support","Priority support"] },
+              { key: "enterprise", name: "Enterprise", price: billingCycle === "monthly" ? 4999 : 3999, desc: "For power users & founders", badge: "Best Value", features: ["Everything in Pro","White-label documents","Advanced analytics","VIP concierge","Custom branding"] },
+            ].map(plan => (
+              <div key={plan.key} className={`relative p-6 rounded-2xl border flex flex-col gap-5 transition-all ${plan.key === "pro" ? "border-[#6D5DFC] bg-[#6D5DFC]/[0.02] shadow-lg shadow-[#6D5DFC]/5" : "border-[#E9ECF5] bg-white"} ${currentPlan === plan.key ? "ring-2 ring-[#6D5DFC]" : ""}`}>
+                {plan.badge && <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-[#6D5DFC] text-white text-[9px] font-black px-3 py-0.5 rounded-full uppercase tracking-wide">{plan.badge}</span>}
+                <div>
+                  <h3 className="font-black text-sm text-[#0A0D14]">{plan.name}</h3>
+                  <p className="text-slate-400 text-[11px] font-semibold mt-0.5">{plan.desc}</p>
+                  <div className="mt-3 flex items-end gap-1">
+                    <span className="text-2xl font-black text-[#0A0D14]">₹{plan.price.toLocaleString()}</span>
+                    {plan.price > 0 && <span className="text-slate-400 text-xs font-semibold mb-1">/mo</span>}
+                  </div>
                 </div>
-                <h3 className="font-extrabold text-lg text-[#0A0D14]">Basic Ledger</h3>
-                <p className="text-xs text-slate-400 mt-1">Standard logs for personal tracking.</p>
-                <div className="mt-6 flex items-baseline gap-1 text-[#0A0D14] font-black text-3xl">₹0</div>
-                <div className="border-t border-[#E9ECF5] my-6" />
-                <ul className="space-y-3.5 text-xs text-slate-500 font-semibold">
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0" /> Limit 5 transactions</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0" /> Budget envelope configuration</li>
-                  <li className="flex items-center gap-2 text-slate-300 line-through"><X className="w-4 h-4 text-slate-300 shrink-0" /> RAG AI Intelligence audits</li>
-                </ul>
-              </div>
-              <button 
-                disabled={currentPlan === "free"}
-                onClick={() => handleSelectPlan("free")}
-                className={`w-full mt-8 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  currentPlan === "free" ? "bg-slate-100 text-slate-400 cursor-default" : "bg-slate-900 text-white cursor-pointer"
-                }`}
-              >
-                {currentPlan === "free" ? "Current Active Plan" : "Downgrade to Starter"}
-              </button>
-            </div>
-
-            {/* Pro Plan */}
-            <div className={`p-6 rounded-2xl bg-white border-2 flex flex-col justify-between shadow-md relative transition-all ${
-              currentPlan === "pro" ? "border-[#6D5DFC] ring-4 ring-[#6D5DFC]/10" : "border-indigo-100 hover:border-indigo-300"
-            }`}>
-              <span className="absolute -top-3 right-6 text-[9px] bg-gradient-to-r from-[#6D5DFC] to-[#8B7CFF] text-white font-black px-2.5 py-1 rounded-full uppercase tracking-wider shadow-md">Most Popular</span>
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-[#6D5DFC] uppercase tracking-wider">FinTrack Pro</span>
-                  {currentPlan === "pro" && <span className="text-[9px] bg-indigo-50 text-[#6D5DFC] font-bold px-2 py-0.5 rounded-full uppercase">Active</span>}
-                </div>
-                <h3 className="font-extrabold text-lg text-[#0A0D14]">Wealth Builder</h3>
-                <p className="text-xs text-slate-400 mt-1">For scaling personal capital and goals.</p>
-                <div className="mt-6 flex items-baseline gap-1 text-[#0A0D14] font-black text-3xl">
-                  {billingCycle === "monthly" ? "₹799" : "₹6,399"}
-                  <span className="text-xs text-slate-400 font-semibold">/{billingCycle === "monthly" ? "mo" : "yr"}</span>
-                </div>
-                <div className="border-t border-[#E9ECF5] my-6" />
-                <ul className="space-y-3.5 text-xs text-slate-500 font-semibold">
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0" /> Unlimited transaction entries</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0" /> RAG AI Intelligence audits</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0" /> Dynamic corporate statement exports</li>
-                </ul>
-              </div>
-              <button 
-                onClick={() => handleSelectPlan(currentPlan === "pro" ? "free" : "pro")}
-                className={`w-full mt-8 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
-                  currentPlan === "pro" ? "bg-slate-200 text-slate-700" : "bg-[#6D5DFC] text-white cursor-pointer"
-                }`}
-              >
-                {currentPlan === "pro" ? "Downgrade Plan" : "Upgrade to Pro"}
-              </button>
-            </div>
-
-            {/* Enterprise Plan */}
-            <div className={`p-6 rounded-2xl bg-white border flex flex-col justify-between shadow-sm transition-all ${
-              currentPlan === "enterprise" ? "border-emerald-500 ring-4 ring-emerald-50" : "border-[#E9ECF5] hover:border-slate-350"
-            }`}>
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Enterprise Elite</span>
-                  {currentPlan === "enterprise" && <span className="text-[9px] bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded-full uppercase">Active</span>}
-                </div>
-                <h3 className="font-extrabold text-lg text-[#0A0D14]">Wealth Command</h3>
-                <p className="text-xs text-slate-400 mt-1">For HNIs and elite wealth management.</p>
-                <div className="mt-6 flex items-baseline gap-1 text-[#0A0D14] font-black text-3xl">
-                  {billingCycle === "monthly" ? "₹4,999" : "₹39,999"}
-                  <span className="text-xs text-slate-400 font-semibold">/{billingCycle === "monthly" ? "mo" : "yr"}</span>
-                </div>
-                <div className="border-t border-[#E9ECF5] my-6" />
-                <ul className="space-y-3.5 text-xs text-slate-500 font-semibold">
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0" /> Everything in Pro</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0" /> API access & Custom webhooks</li>
-                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-[#00C875] shrink-0" /> Priority 1-on-1 advisor desk</li>
-                </ul>
-              </div>
-              <button 
-                onClick={() => handleSelectPlan(currentPlan === "enterprise" ? "free" : "enterprise")}
-                className={`w-full mt-8 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm ${
-                  currentPlan === "enterprise" ? "bg-slate-200 text-slate-700" : "bg-slate-900 text-white cursor-pointer"
-                }`}
-              >
-                {currentPlan === "enterprise" ? "Cancel Enterprise" : "Upgrade to Enterprise"}
-              </button>
-            </div>
-          </div>
-
-          {/* Billing Receipts archives list */}
-          <div className="p-6 rounded-2xl bg-white border border-[#E9ECF5] shadow-sm max-w-5xl mx-auto text-left">
-            <h3 className="font-extrabold text-sm text-[#0A0D14] mb-4">Subscription Billing History</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs font-semibold text-slate-600">
-                <thead>
-                  <tr className="border-b border-[#E9ECF5] text-slate-400 font-bold text-[9px] uppercase tracking-wider text-left">
-                    <th className="py-2.5 px-3">Invoice No.</th>
-                    <th className="py-2.5 px-3">Issue Date</th>
-                    <th className="py-2.5 px-3">Allocated Plan</th>
-                    <th className="py-2.5 px-3">Amount</th>
-                    <th className="py-2.5 px-3">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {invoices.map(inv => (
-                    <tr key={inv.id} className="hover:bg-slate-50/50">
-                      <td className="py-3 px-3 font-bold text-[#0A0D14]">{inv.id}</td>
-                      <td className="py-3 px-3 text-slate-500">{inv.date}</td>
-                      <td className="py-3 px-3">{inv.plan}</td>
-                      <td className="py-3 px-3 text-[#0A0D14] font-bold">₹{inv.amount.toLocaleString()}</td>
-                      <td className="py-3 px-3">
-                        <span className="bg-[#e2fbe8] text-[#00C875] text-[8px] font-black px-2 py-0.5 rounded-full uppercase">Settled</span>
-                      </td>
-                    </tr>
+                <ul className="space-y-2.5 text-xs text-slate-500 font-semibold flex-1">
+                  {plan.features.map(f => (
+                    <li key={f} className="flex items-center gap-2"><Check className="w-3.5 h-3.5 text-[#00C875] shrink-0" />{f}</li>
                   ))}
-                </tbody>
-              </table>
-            </div>
+                </ul>
+                <button onClick={() => handleSelectPlan(plan.key as any)}
+                  className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all ${currentPlan === plan.key ? "bg-slate-100 text-slate-400 cursor-default" : plan.key === "pro" ? "bg-[#6D5DFC] hover:bg-[#5C4EED] text-white shadow-md shadow-[#6D5DFC]/20" : "border border-[#E9ECF5] hover:bg-slate-50 text-slate-700"}`}>
+                  {currentPlan === plan.key ? "Current Plan" : `Select ${plan.name}`}
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* TAB 2: INTERACTIVE DOCUMENT CENTER */}
+      {/* TAB 2: DOCUMENT CENTER */}
       {consoleTab === "documents" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start text-left animate-fade-in print:grid-cols-1 print:gap-0">
-          
-          {/* Config Controls Column (Left - 1/3) - hidden in print */}
-          <div className="lg:col-span-4 space-y-6 print:hidden">
-            <div className="p-6 rounded-3xl bg-white border border-[#E9ECF5] shadow-sm space-y-5">
-              <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                <Building className="w-5 h-5 text-[#6D5DFC]" />
-                <h3 className="font-extrabold text-sm text-[#0A0D14]">Document Settings</h3>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 print:block animate-fade-in">
 
-              <div className="space-y-4 text-xs font-semibold text-slate-600">
-                {/* Select Document Type */}
+          {/* Left control panel */}
+          <div className="lg:col-span-3 space-y-4 print:hidden">
+
+            <div className="bg-white rounded-2xl border border-[#E9ECF5] p-4 shadow-sm space-y-3">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Document Type</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {(["INVOICE","RECEIPT","INVESTMENT","ACCOUNT"] as DocType[]).map(dt => (
+                  <button key={dt} onClick={() => setSelectedDocType(dt)}
+                    className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-[9px] font-extrabold uppercase tracking-wide transition-all ${selectedDocType === dt ? "border-[#6D5DFC] bg-[#6D5DFC]/5 text-[#6D5DFC]" : "border-[#E9ECF5] text-slate-500 hover:border-slate-300"}`}>
+                    <span style={{ color: selectedDocType === dt ? themeAccentHex : undefined }}>{docTypeIcon[dt]}</span>
+                    {dt === "INVESTMENT" ? "Statement" : dt === "ACCOUNT" ? "Account" : dt.charAt(0) + dt.slice(1).toLowerCase()}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-[#E9ECF5] p-4 shadow-sm space-y-3">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Record Selection</h3>
+              {selectedDocType === "INVOICE" && (
                 <div className="space-y-1">
-                  <label className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wide">Document Format</label>
-                  <select
-                    value={selectedDocType}
-                    onChange={(e) => setSelectedDocType(e.target.value as DocType)}
-                    className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E9ECF5] rounded-xl text-slate-800 font-bold focus:outline-none"
-                  >
-                    <option value="INVOICE">Subscription Invoice</option>
-                    <option value="RECEIPT">Ledger Payment Receipt</option>
-                    <option value="INVESTMENT">Investment SIP Statement</option>
-                    <option value="ACCOUNT">Account Audit Statement</option>
+                  <label className="text-[10px] text-slate-400 font-bold uppercase">Invoice</label>
+                  <select value={selectedInvoiceId} onChange={e => setSelectedInvoiceId(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E9ECF5] rounded-xl text-slate-800 text-xs focus:outline-none focus:ring-2 focus:ring-[#6D5DFC]/20">
+                    {invoices.map(inv => (
+                      <option key={inv.id} value={inv.id}>{inv.id} — {inv.date}</option>
+                    ))}
                   </select>
                 </div>
-
-                {/* Dynamic selectors based on format */}
-                {selectedDocType === "INVOICE" && (
-                  <div className="space-y-1">
-                    <label className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wide">Select Invoice Record</label>
-                    <select
-                      value={selectedInvoiceId}
-                      onChange={(e) => setSelectedInvoiceId(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E9ECF5] rounded-xl text-slate-800 focus:outline-none"
-                    >
-                      {invoices.map(inv => (
-                        <option key={inv.id} value={inv.id}>{inv.id} ({inv.date}) - ₹{inv.amount}</option>
+              )}
+              {selectedDocType === "RECEIPT" && (
+                <div className="space-y-1">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase">Transaction</label>
+                  {allTransactions.length > 0 ? (
+                    <select value={selectedTxId} onChange={e => setSelectedTxId(e.target.value)}
+                      className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E9ECF5] rounded-xl text-slate-800 text-xs focus:outline-none">
+                      {allTransactions.map((tx: any) => (
+                        <option key={tx.id} value={tx.id}>{tx.title} — {currencySymbol}{tx.amount.amount}</option>
                       ))}
                     </select>
-                  </div>
-                )}
-
-                {selectedDocType === "RECEIPT" && (
-                  <div className="space-y-1">
-                    <label className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wide">Select Ledger Transaction</label>
-                    {allTransactions.length > 0 ? (
-                      <select
-                        value={selectedTxId}
-                        onChange={(e) => setSelectedTxId(e.target.value)}
-                        className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E9ECF5] rounded-xl text-slate-800 focus:outline-none"
-                      >
-                        {allTransactions.map(tx => (
-                          <option key={tx.id} value={tx.id}>{tx.title} - ₹{tx.amount.amount} ({tx.categoryId})</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <div className="text-[10px] text-rose-500 font-bold bg-rose-50 p-2.5 rounded-xl border border-rose-100">
-                        No ledger transactions found. Log transactions in the Ledger tab first.
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {selectedDocType === "ACCOUNT" && (
-                  <div className="space-y-1">
-                    <label className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wide">Select Statement Month</label>
-                    <select
-                      value={selectedMonth}
-                      onChange={(e) => setSelectedMonth(e.target.value)}
-                      className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E9ECF5] rounded-xl text-slate-800 focus:outline-none"
-                    >
-                      <option value="June 2026">June 2026</option>
-                      <option value="May 2026">May 2026</option>
-                    </select>
-                  </div>
-                )}
-
-                <div className="border-t border-slate-100 my-4 pt-4 space-y-4">
-                  {/* Currency Selection */}
-                  <div className="space-y-1">
-                    <label className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wide">Format Currency</label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(["INR", "USD", "EUR"] as const).map(curr => (
-                        <button
-                          key={curr}
-                          onClick={() => setSelectedCurrency(curr)}
-                          className={`py-1.5 rounded-xl border font-bold text-center ${
-                            selectedCurrency === curr
-                              ? "bg-slate-900 border-slate-900 text-white"
-                              : "bg-white border-[#E9ECF5] text-slate-600 hover:bg-slate-50"
-                          }`}
-                        >
-                          {curr === "INR" ? "INR (₹)" : curr === "USD" ? "USD ($)" : "EUR (€)"}
-                        </button>
-                      ))}
+                  ) : (
+                    <div className="text-[10px] text-rose-500 font-bold bg-rose-50 p-2.5 rounded-xl border border-rose-100">
+                      No transactions found. Add some in the Ledger first.
                     </div>
-                  </div>
-
-                  {/* Color Theme Selector */}
-                  <div className="space-y-1">
-                    <label className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wide">Accent Theme Color</label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {(["indigo", "slate", "emerald", "crimson"] as const).map(color => (
-                        <button
-                          key={color}
-                          onClick={() => setAccentTheme(color)}
-                          className={`py-2 rounded-xl border text-[10px] font-extrabold capitalize text-center border-slate-200 transition-all ${
-                            accentTheme === color ? "ring-2 ring-indigo-500 scale-102" : "hover:bg-slate-50"
-                          }`}
-                        >
-                          <span className={`inline-block w-2.5 h-2.5 rounded-full mr-1.5 align-middle ${
-                            color === "indigo" ? "bg-[#6D5DFC]" :
-                            color === "slate" ? "bg-slate-600" :
-                            color === "emerald" ? "bg-[#10B981]" : "bg-red-500"
-                          }`} />
-                          {color === "indigo" ? "Brand" : color}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Document Status Badge Selector */}
-                  <div className="space-y-1">
-                    <label className="text-[11px] text-slate-400 font-extrabold uppercase tracking-wide">Force Document Status</label>
-                    <div className="grid grid-cols-3 gap-2 text-[9px] font-bold">
-                      {["PAID", "PENDING", "FAILED"].map(status => (
-                        <button
-                          key={status}
-                          onClick={() => setDocStatus(status)}
-                          className={`py-1.5 rounded-xl border font-extrabold text-center ${
-                            docStatus === status
-                              ? "bg-slate-900 border-slate-900 text-white"
-                              : "bg-white border-[#E9ECF5] text-slate-600 hover:bg-slate-50"
-                          }`}
-                        >
-                          {status}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                  )}
                 </div>
+              )}
+              {selectedDocType === "ACCOUNT" && (
+                <div className="space-y-1">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase">Month</label>
+                  <select value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#F7F8FC] border border-[#E9ECF5] rounded-xl text-slate-800 text-xs focus:outline-none">
+                    <option value="June 2026">June 2026</option>
+                    <option value="May 2026">May 2026</option>
+                  </select>
+                </div>
+              )}
+              {selectedDocType === "INVESTMENT" && (
+                <p className="text-[10px] text-slate-400 font-semibold">Using live goal data from your ledger.</p>
+              )}
+            </div>
 
+            <div className="bg-white rounded-2xl border border-[#E9ECF5] p-4 shadow-sm space-y-4">
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Customization</h3>
+
+              <div className="space-y-2">
+                <label className="text-[10px] text-slate-400 font-bold uppercase">Currency</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {(["INR","USD","EUR"] as const).map(c => (
+                    <button key={c} onClick={() => setSelectedCurrency(c)}
+                      className={`py-1.5 rounded-xl border text-[9px] font-bold transition-all ${selectedCurrency === c ? "bg-slate-900 border-slate-900 text-white" : "bg-white border-[#E9ECF5] text-slate-600 hover:bg-slate-50"}`}>
+                      {c === "INR" ? "₹ INR" : c === "USD" ? "$ USD" : "€ EUR"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] text-slate-400 font-bold uppercase">Brand Color</label>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {(["indigo","slate","emerald","crimson"] as const).map(color => (
+                    <button key={color} onClick={() => setAccentTheme(color)}
+                      className={`py-2 rounded-xl border text-[8px] font-bold flex flex-col items-center gap-1 transition-all ${accentTheme === color ? "ring-2 ring-offset-1 border-transparent" : "border-[#E9ECF5] hover:bg-slate-50"}`}
+                      style={accentTheme === color ? { outlineColor: ACCENT_HEX[color] } : {}}>
+                      <span className="w-3 h-3 rounded-full" style={{ backgroundColor: ACCENT_HEX[color] }} />
+                      <span className="text-slate-500 capitalize">{color === "indigo" ? "Brand" : color}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] text-slate-400 font-bold uppercase">Document Status</label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {["PAID","PENDING","FAILED"].map(s => (
+                    <button key={s} onClick={() => setDocStatus(s)}
+                      className={`py-1.5 rounded-xl border text-[9px] font-bold transition-all ${docStatus === s ? "bg-slate-900 border-slate-900 text-white" : "bg-white border-[#E9ECF5] text-slate-600 hover:bg-slate-50"}`}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Interactive Document Preview Column (Right - 2/3) */}
-          <div className="lg:col-span-8 space-y-6 print:w-full print:p-0 print:border-none print:shadow-none">
-            {/* Header bar controls - hidden in print */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E9ECF5] p-3 rounded-2xl shadow-sm print:hidden">
-              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl text-xs font-bold self-start">
-                <button
-                  onClick={() => setPreviewTab("document")}
-                  className={`px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-                    previewTab === "document" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
-                  }`}
-                >
-                  <Eye className="w-4 h-4" /> A4 Paper Preview
-                </button>
-                <button
-                  onClick={() => setPreviewTab("email")}
-                  className={`px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${
-                    previewTab === "email" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
-                  }`}
-                >
-                  <Mail className="w-4 h-4" /> Email HTML View
-                </button>
-              </div>
+          {/* Right: preview + download */}
+          <div className="lg:col-span-9 space-y-4 print:w-full">
 
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-[#E9ECF5] p-3 rounded-2xl shadow-sm print:hidden">
               <div className="flex items-center gap-2">
-                <button
-                  onClick={handlePrint}
-                  className="flex items-center gap-1.5 px-4 py-2 border border-[#E9ECF5] hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold shadow-sm transition-all"
-                  title="Print Document"
-                >
+                <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+                  {(["document","email"] as const).map(tab => (
+                    <button key={tab} onClick={() => setPreviewTab(tab)}
+                      className={`px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-all ${previewTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}>
+                      {tab === "document" ? <><Eye className="w-3.5 h-3.5" /> A4 Preview</> : <><Mail className="w-3.5 h-3.5" /> Email View</>}
+                    </button>
+                  ))}
+                </div>
+                {activeDocId && (
+                  <span className="text-[10px] font-bold text-slate-400 border border-[#E9ECF5] px-2.5 py-1 rounded-lg bg-slate-50">{activeDocId}</span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => window.print()} className="flex items-center gap-1.5 px-3.5 py-2 border border-[#E9ECF5] hover:bg-slate-50 text-slate-600 rounded-xl text-xs font-bold transition-all">
                   <Printer className="w-3.5 h-3.5 text-slate-400" /> Print
                 </button>
-                <button
-                  disabled={isDownloading}
-                  onClick={handleDownloadPDF}
-                  className="flex items-center gap-1.5 bg-[#6D5DFC] hover:bg-[#5C4EED] text-white text-xs font-bold px-5.5 py-2.5 rounded-xl shadow-md shadow-[#6D5DFC]/10 transition-all disabled:opacity-50"
-                >
-                  {isDownloading ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      Compiling...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="w-3.5 h-3.5" />
-                      Download PDF
-                    </>
-                  )}
+                <button disabled={isDownloading} onClick={handleDownloadPDF}
+                  className="flex items-center gap-1.5 text-white text-xs font-bold px-5 py-2 rounded-xl shadow-md transition-all disabled:opacity-50"
+                  style={{ backgroundColor: themeAccentHex }}>
+                  {isDownloading ? <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Compiling…</> : <><Download className="w-3.5 h-3.5" /> Download PDF</>}
                 </button>
               </div>
             </div>
 
-            {/* PREVIEW CONTAINER */}
             {previewTab === "document" ? (
-              /* A4 PAPER PREVIEW (Light Mode Premium) */
-              <div 
-                className="w-full bg-white border border-[#E9ECF5] shadow-2xl rounded-2xl mx-auto p-12 space-y-8 font-sans text-slate-700 text-xs relative max-w-[794px] min-h-[1000px] overflow-hidden leading-relaxed select-none print:shadow-none print:border-none print:p-4"
-                style={{ contentVisibility: "auto" }}
-              >
-                {/* Top brand accent border line */}
-                <div 
-                  className="absolute top-0 left-0 right-0 h-3" 
-                  style={{ backgroundColor: themeAccentHex }}
-                />
+              /* A4 PAPER PREVIEW */
+              <div className="w-full bg-white border border-[#E9ECF5] shadow-xl rounded-2xl mx-auto overflow-hidden font-sans text-slate-700 text-xs relative max-w-[794px] select-none print:shadow-none print:border-none print:rounded-none">
 
-                {/* Header Row */}
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-xl font-black text-[#0A0D14] tracking-tight">{DocumentGeneratorService["COMPANY_NAME"]}</h2>
-                    <p className="text-[9px] text-slate-400 mt-0.5 font-semibold tracking-wide uppercase">{DocumentGeneratorService["COMPANY_TAGLINE"]}</p>
+                <div className="h-2.5 w-full" style={{ backgroundColor: themeAccentHex }} />
+
+                <div className="px-10 py-8 space-y-6">
+
+                  {/* Header */}
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="w-6 h-6 rounded flex items-center justify-center" style={{ backgroundColor: themeAccentHex }}>
+                          <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="w-full h-full p-1.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                          </svg>
+                        </div>
+                        <span className="text-lg font-black text-[#0A0D14] tracking-tight">{DocumentGeneratorService.COMPANY_NAME}</span>
+                      </div>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest ml-8">{DocumentGeneratorService.COMPANY_TAGLINE}</p>
+                    </div>
+                    <div className="text-right">
+                      <h3 className="text-sm font-black tracking-tight" style={{ color: themeAccentHex }}>
+                        {activeDocLabel[selectedDocType].toUpperCase()}
+                      </h3>
+                      <div className="flex justify-end mt-1.5">
+                        <span className={`text-[8px] font-black px-2.5 py-0.5 rounded border uppercase tracking-wider ${statusCls(docStatus)}`}>{docStatus}</span>
+                      </div>
+                      <p className="text-[8.5px] text-slate-400 font-mono mt-1.5">{activeDocId}</p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <h3 className="text-sm font-black tracking-tight" style={{ color: themeAccentHex }}>
-                      {selectedDocType === "INVOICE" && "INVOICE STATEMENT"}
-                      {selectedDocType === "RECEIPT" && "PAYMENT RECEIPT"}
-                      {selectedDocType === "INVESTMENT" && "INVESTMENT STATEMENT"}
-                      {selectedDocType === "ACCOUNT" && "ACCOUNT STATEMENT"}
-                    </h3>
-                    <div className="flex justify-end gap-1.5 items-center mt-2">
-                      <span className={`text-[8px] font-black px-2 py-0.5 rounded uppercase tracking-wider ${
-                        docStatus === "PAID" ? "bg-emerald-50 text-[#00C875] border border-emerald-100" :
-                        docStatus === "PENDING" ? "bg-amber-50 text-[#FFB020] border border-amber-100" :
-                        "bg-rose-50 text-[#FF5A5F] border border-rose-100"
-                      }`}>
-                        {docStatus}
+
+                  {/* Company meta */}
+                  <div className="border-t border-[#E9ECF5] pt-4 grid grid-cols-3 gap-4 text-[8.5px]">
+                    {[
+                      { label: "Contact", lines: [DocumentGeneratorService.COMPANY_WEBSITE, DocumentGeneratorService.COMPANY_EMAIL] },
+                      { label: "Registrations", lines: [DocumentGeneratorService.COMPANY_GSTIN, DocumentGeneratorService.COMPANY_BRN] },
+                      { label: "Registered Office", lines: ["100 Pine Street, Suite 2400", "San Francisco, CA 94111, USA"] },
+                    ].map(col => (
+                      <div key={col.label}>
+                        <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider block mb-1">{col.label}</span>
+                        {col.lines.map(l => <span key={l} className="block text-slate-600 font-semibold leading-relaxed">{l}</span>)}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t border-[#E9ECF5]" />
+
+                  {/* Meta row */}
+                  <div className="grid grid-cols-3 gap-4 text-[8.5px]">
+                    {selectedDocType === "INVOICE" && invoiceData && [
+                      { label: "Issue Date", value: invoiceData.date },
+                      { label: "Payment Due", value: invoiceData.dueDate },
+                      { label: "Transaction Ref", value: invoiceData.transactionId },
+                    ].map(col => (
+                      <div key={col.label}>
+                        <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider block mb-1">{col.label}</span>
+                        <span className="block text-slate-700 font-bold font-mono">{col.value}</span>
+                      </div>
+                    ))}
+                    {selectedDocType === "RECEIPT" && receiptData && [
+                      { label: "Payment Date", value: receiptData.date },
+                      { label: "Payment Method", value: receiptData.paymentMethod },
+                      { label: "Transaction ID", value: receiptData.transactionId },
+                    ].map(col => (
+                      <div key={col.label}>
+                        <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider block mb-1">{col.label}</span>
+                        <span className="block text-slate-700 font-bold font-mono">{col.value}</span>
+                      </div>
+                    ))}
+                    {selectedDocType === "INVESTMENT" && investmentData && [
+                      { label: "Statement Period", value: investmentData.period },
+                      { label: "Portfolio Ref", value: investmentData.referenceId },
+                      { label: "Total Invested", value: fmtAmt(investmentData.totalInvested) },
+                    ].map(col => (
+                      <div key={col.label}>
+                        <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider block mb-1">{col.label}</span>
+                        <span className="block text-slate-700 font-bold font-mono">{col.value}</span>
+                      </div>
+                    ))}
+                    {selectedDocType === "ACCOUNT" && accountData && [
+                      { label: "Statement Month", value: accountData.monthName },
+                      { label: "Savings Rate", value: `${accountData.summary.savingsRate}%` },
+                      { label: "Health Score", value: `${accountData.healthScore} / 100` },
+                    ].map(col => (
+                      <div key={col.label}>
+                        <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider block mb-1">{col.label}</span>
+                        <span className="block text-slate-700 font-bold">{col.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="border-t border-[#E9ECF5]" />
+
+                  {/* Customer block */}
+                  <div className="grid grid-cols-2 gap-8 text-[8.5px]">
+                    <div>
+                      <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider block mb-2">Bill To</span>
+                      <span className="block font-black text-sm text-[#0A0D14] leading-tight">
+                        {selectedDocType === "INVOICE" ? invoiceData?.customer.name :
+                         selectedDocType === "RECEIPT" ? receiptData?.customer.name :
+                         selectedDocType === "INVESTMENT" ? investmentData?.customer.name :
+                         accountData?.customer.name}
+                      </span>
+                      <span className="block text-slate-500 font-semibold mt-1">
+                        {selectedDocType === "INVOICE" ? invoiceData?.customer.email :
+                         selectedDocType === "RECEIPT" ? receiptData?.customer.email :
+                         selectedDocType === "INVESTMENT" ? investmentData?.customer.email :
+                         accountData?.customer.email}
+                      </span>
+                      <span className="block text-slate-400 font-semibold mt-1 leading-relaxed">
+                        {selectedDocType === "INVOICE" ? invoiceData?.customer.billingAddress :
+                         selectedDocType === "RECEIPT" ? receiptData?.customer.billingAddress :
+                         selectedDocType === "INVESTMENT" ? investmentData?.customer.billingAddress :
+                         accountData?.customer.billingAddress}
                       </span>
                     </div>
-                    <span className="block text-[9px] text-slate-400 font-bold mt-1.5">
-                      Ref ID: {selectedDocType === "INVOICE" && invoiceData?.id}
-                      {selectedDocType === "RECEIPT" && receiptData?.id}
-                      {selectedDocType === "INVESTMENT" && investmentData?.id}
-                      {selectedDocType === "ACCOUNT" && accountData?.id}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="border-t border-[#E9ECF5]" />
-
-                {/* Company details columns */}
-                <div className="grid grid-cols-3 gap-6 text-[8px] leading-normal font-semibold text-slate-500">
-                  <div>
-                    <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Contact</span>
-                    <span className="block text-slate-800">{DocumentGeneratorService["COMPANY_WEBSITE"]}</span>
-                    <span className="block text-slate-800">{DocumentGeneratorService["COMPANY_EMAIL"]}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Registrations</span>
-                    <span className="block text-slate-800">{DocumentGeneratorService["COMPANY_GSTIN"]}</span>
-                    <span className="block text-slate-800">{DocumentGeneratorService["COMPANY_BRN"]}</span>
-                  </div>
-                  <div>
-                    <span className="block text-[8px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Office Address</span>
-                    <span className="block text-slate-800">100 Pine Street, Suite 2400</span>
-                    <span className="block text-slate-800">San Francisco, CA 94111, USA</span>
-                  </div>
-                </div>
-
-                <div className="border-t border-[#E9ECF5]" />
-
-                {/* Metadata Row (Col 1: Issue Date, Col 2: Due Date/Method, Col 3: Reference) */}
-                <div className="grid grid-cols-3 gap-6 text-[9px] leading-normal font-bold">
-                  <div>
-                    <span className="block text-[8px] text-slate-400 font-extrabold uppercase tracking-wider">Date Issued</span>
-                    <span className="text-slate-700 mt-1 block">
-                      {selectedDocType === "INVOICE" && invoiceData?.date}
-                      {selectedDocType === "RECEIPT" && receiptData?.date}
-                      {selectedDocType === "INVESTMENT" && investmentData?.date}
-                      {selectedDocType === "ACCOUNT" && accountData?.date}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-[8px] text-slate-400 font-extrabold uppercase tracking-wider">
-                      {selectedDocType === "INVOICE" ? "Payment Due" : "Payment Method"}
-                    </span>
-                    <span className="text-slate-700 mt-1 block">
-                      {selectedDocType === "INVOICE" && invoiceData?.dueDate}
-                      {selectedDocType === "RECEIPT" && receiptData?.paymentMethod}
-                      {selectedDocType === "INVESTMENT" && "Auto-Debit SIP"}
-                      {selectedDocType === "ACCOUNT" && "Local Ledger Audit"}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="block text-[8px] text-slate-400 font-extrabold uppercase tracking-wider">Reference Code</span>
-                    <span className="text-slate-700 mt-1 block font-mono">
-                      {selectedDocType === "INVOICE" && invoiceData?.transactionId}
-                      {selectedDocType === "RECEIPT" && receiptData?.transactionId}
-                      {selectedDocType === "INVESTMENT" && investmentData?.referenceId}
-                      {selectedDocType === "ACCOUNT" && "AUDIT-SYNC-OK"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="border-t border-[#E9ECF5]" />
-
-                {/* Customer Section */}
-                <div className="grid grid-cols-2 gap-8">
-                  <div>
-                    <span className="block text-[8px] text-slate-400 font-extrabold uppercase tracking-wider mb-1">Bill To (Customer)</span>
-                    <span className="block text-xs font-bold text-slate-800">
-                      {selectedDocType === "INVOICE" && invoiceData?.customer.name}
-                      {selectedDocType === "RECEIPT" && receiptData?.customer.name}
-                      {selectedDocType === "INVESTMENT" && investmentData?.customer.name}
-                      {selectedDocType === "ACCOUNT" && accountData?.customer.name}
-                    </span>
-                    <span className="block text-[10px] text-slate-400 mt-0.5 leading-relaxed font-semibold">
-                      {selectedDocType === "INVOICE" && invoiceData?.customer.email}
-                      {selectedDocType === "RECEIPT" && receiptData?.customer.email}
-                      {selectedDocType === "INVESTMENT" && investmentData?.customer.email}
-                      {selectedDocType === "ACCOUNT" && accountData?.customer.email}
-                    </span>
-                    <span className="block text-[9px] text-slate-400 mt-1 leading-relaxed font-semibold">
-                      {selectedDocType === "INVOICE" && invoiceData?.customer.billingAddress}
-                      {selectedDocType === "RECEIPT" && receiptData?.customer.billingAddress}
-                      {selectedDocType === "INVESTMENT" && investmentData?.customer.billingAddress}
-                      {selectedDocType === "ACCOUNT" && accountData?.customer.billingAddress}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="block text-[8px] text-slate-400 font-extrabold uppercase tracking-wider mb-1">Customer Summary</span>
-                    <span className="block text-[9.5px] text-slate-500 font-semibold leading-relaxed">
-                      Verification Status: <strong className="text-[#00C875] font-extrabold">SECURE CLIENT</strong><br />
-                      {selectedDocType === "ACCOUNT" && accountData?.customer.accountNumber && (
-                        <>Account Number: {accountData.customer.accountNumber}<br /></>
-                      )}
-                      Subscription Tier: <strong className="text-slate-800 font-bold uppercase">{currentPlan}</strong>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="border-t border-[#E9ECF5]" />
-
-                {/* TEMPLATE DETAIL VIEWS */}
-
-                {/* 1. INVOICE LINE ITEMS */}
-                {selectedDocType === "INVOICE" && invoiceData && (
-                  <div className="space-y-6">
-                    <table className="w-full text-left font-semibold">
-                      <thead>
-                        <tr className="bg-slate-50 text-[#0A0D14] border-y border-[#E9ECF5] text-[9px] font-extrabold uppercase">
-                          <th className="py-2 px-3">Description</th>
-                          <th className="py-2 px-3">Category</th>
-                          <th className="py-2 px-3 text-right">Qty</th>
-                          <th className="py-2 px-3 text-right">Unit Price</th>
-                          <th className="py-2 px-3 text-right">Tax</th>
-                          <th className="py-2 px-3 text-right">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-[10px] text-slate-700">
-                        {invoiceData.items.map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="py-3 px-3 font-bold text-[#0A0D14]">{item.description}</td>
-                            <td className="py-3 px-3">{item.category}</td>
-                            <td className="py-3 px-3 text-right">{item.quantity}</td>
-                            <td className="py-3 px-3 text-right">{currencySymbol}{item.unitPrice.toLocaleString()}</td>
-                            <td className="py-3 px-3 text-right">{Math.round(item.taxRate*100)}%</td>
-                            <td className="py-3 px-3 text-right font-bold text-[#0A0D14]">{currencySymbol}{item.amount.toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-
-                    <div className="flex justify-end pt-4">
-                      <div className="w-64 space-y-1.5 text-right font-semibold text-[10px]">
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Subtotal:</span>
-                          <span className="text-slate-700">{currencySymbol}{invoiceData.items.reduce((s,i)=>s+i.amount,0).toLocaleString(undefined, {minimumFractionDigits:2})}</span>
+                    <div>
+                      <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider block mb-2">Account Details</span>
+                      {[
+                        ["Customer ID", selectedDocType === "INVOICE" ? invoiceData?.customer.customerId : selectedDocType === "RECEIPT" ? receiptData?.customer.customerId : selectedDocType === "INVESTMENT" ? investmentData?.customer.customerId : accountData?.customer.customerId],
+                        ["Account No.", selectedDocType === "INVOICE" ? invoiceData?.customer.accountNumber : selectedDocType === "INVESTMENT" ? investmentData?.customer.accountNumber : selectedDocType === "ACCOUNT" ? accountData?.customer.accountNumber : null],
+                        ["Membership Tier", selectedDocType === "INVOICE" ? invoiceData?.customer.tier?.toUpperCase() : selectedDocType === "INVESTMENT" ? investmentData?.customer.tier?.toUpperCase() : selectedDocType === "ACCOUNT" ? accountData?.customer.tier?.toUpperCase() : null],
+                        ["Tax Region", selectedDocType === "INVOICE" ? invoiceData?.customer.taxRegion : selectedDocType === "RECEIPT" ? receiptData?.customer.taxRegion : selectedDocType === "ACCOUNT" ? accountData?.customer.taxRegion : "India (GST)"],
+                        ["Verification", "SECURE CLIENT ✓"],
+                      ].filter(([, v]) => v).map(([label, value]) => (
+                        <div key={String(label)} className="flex justify-between mb-1.5">
+                          <span className="text-slate-400 font-semibold">{label}</span>
+                          <span className={`font-bold ${String(value).includes("SECURE") ? "text-emerald-500" : "text-slate-700"}`}>{value}</span>
                         </div>
-                        <div className="flex justify-between text-emerald-500 font-extrabold">
-                          <span>Discount:</span>
-                          <span>-{currencySymbol}0.00</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">GST (18% inclusive):</span>
-                          <span className="text-slate-700">{currencySymbol}{Math.round(invoiceData.items.reduce((s,i)=>s+i.amount,0) * 0.18 / 1.18).toLocaleString(undefined, {minimumFractionDigits:2})}</span>
-                        </div>
-                        <div className="border-t border-[#E9ECF5] pt-1.5 flex justify-between text-xs font-black">
-                          <span className="text-[#0A0D14]">Total Paid:</span>
-                          <span style={{ color: themeAccentHex }}>{currencySymbol}{invoiceData.items.reduce((s,i)=>s+i.amount,0).toLocaleString(undefined, {minimumFractionDigits:2})}</span>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </div>
-                )}
+                  <div className="border-t border-[#E9ECF5]" />
 
-                {/* 2. RECEIPT DETAIL VIEW */}
-                {selectedDocType === "RECEIPT" && receiptData && (
-                  <div className="space-y-6">
-                    <div className="p-5 bg-slate-50 border border-[#E9ECF5] rounded-2xl grid grid-cols-2 gap-y-4 gap-x-8">
-                      <div>
-                        <span className="block text-[8px] text-slate-400 font-extrabold uppercase">Receipt Item Title</span>
-                        <span className="block text-xs font-bold text-slate-800 mt-1">{receiptData.title}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[8px] text-slate-400 font-extrabold uppercase">Category Group</span>
-                        <span className="block text-xs font-bold text-slate-800 mt-1">{receiptData.category}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[8px] text-slate-400 font-extrabold uppercase">Transaction Location</span>
-                        <span className="block text-[11px] text-slate-600 mt-1 font-semibold">{receiptData.location}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[8px] text-slate-400 font-extrabold uppercase">Transaction Notes</span>
-                        <span className="block text-[11px] text-slate-600 mt-1 font-semibold">{receiptData.notes}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end pt-4">
-                      <div className="w-64 space-y-1.5 text-right font-semibold text-[10px]">
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Subtotal amount transacted:</span>
-                          <span className="text-slate-700">{currencySymbol}{receiptData.amount.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">GST (18% inclusive):</span>
-                          <span className="text-slate-700">
-                            {currencySymbol}{Math.round(receiptData.amount * 0.18 / 1.18).toLocaleString(undefined, {minimumFractionDigits:2})}
-                          </span>
-                        </div>
-                        <div className="border-t border-[#E9ECF5] pt-1.5 flex justify-between text-xs font-black">
-                          <span className="text-[#0A0D14]">Total Settled:</span>
-                          <span style={{ color: themeAccentHex }}>{currencySymbol}{receiptData.amount.toLocaleString(undefined, {minimumFractionDigits:2})}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* 3. INVESTMENT SIP STATEMENTS */}
-                {selectedDocType === "INVESTMENT" && investmentData && (
-                  <div className="space-y-6">
-                    <table className="w-full text-left font-semibold">
-                      <thead>
-                        <tr className="bg-slate-50 text-[#0A0D14] border-y border-[#E9ECF5] text-[9px] font-extrabold uppercase">
-                          <th className="py-2 px-3">Linked Goal (SIP)</th>
-                          <th className="py-2 px-3">Target Date</th>
-                          <th className="py-2 px-3 text-right">Target Amount</th>
-                          <th className="py-2 px-3 text-right">Current Saved</th>
-                          <th className="py-2 px-3 text-right">Progress</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-[10px] text-slate-700">
-                        {investmentData.allocations.map((item, idx) => (
-                          <tr key={idx}>
-                            <td className="py-3 px-3 font-bold text-[#0A0D14]">{item.goalTitle}</td>
-                            <td className="py-3 px-3">{item.targetDate || "Dec 2026"}</td>
-                            <td className="py-3 px-3 text-right">{currencySymbol}{item.target.toLocaleString()}</td>
-                            <td className="py-3 px-3 text-right font-bold text-emerald-600">{currencySymbol}{item.saved.toLocaleString()}</td>
-                            <td className="py-3 px-3 text-right font-bold">{item.percent}%</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-
-                    <div className="p-4 bg-slate-50 border border-[#E9ECF5] rounded-xl flex items-center justify-between">
-                      <span className="text-[10px] text-slate-400 font-extrabold uppercase">Investment Summary</span>
-                      <span className="text-xs font-black text-slate-800">
-                        Total SIP Contributions: <span style={{ color: themeAccentHex }}>{currencySymbol}{investmentData.totalInvested.toLocaleString()}</span>
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 4. ACCOUNT STATEMENTS */}
-                {selectedDocType === "ACCOUNT" && accountData && (
-                  <div className="space-y-6 animate-fade-in">
-                    {/* Summary metrics row */}
-                    <div className="p-4 bg-slate-50 border border-[#E9ECF5] rounded-2xl grid grid-cols-3 text-center divide-x divide-slate-200">
-                      <div>
-                        <span className="block text-[8px] text-slate-400 font-extrabold uppercase">Total Credited</span>
-                        <span className="block text-sm font-black text-[#00C875] mt-1">{currencySymbol}{accountData.summary.totalIncome.toLocaleString()}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[8px] text-slate-400 font-extrabold uppercase">Total Expenses</span>
-                        <span className="block text-sm font-black text-[#FF5A5F] mt-1">{currencySymbol}{accountData.summary.totalExpenses.toLocaleString()}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[8px] text-slate-400 font-extrabold uppercase">Net Accumulation</span>
-                        <span className="block text-sm font-black mt-1" style={{ color: themeAccentHex }}>{currencySymbol}{accountData.summary.netSavings.toLocaleString()}</span>
-                      </div>
-                    </div>
-
-                    {/* Budgets table */}
-                    <div className="space-y-2">
-                      <h4 className="text-[10px] font-black text-[#0A0D14] uppercase tracking-wide">Monthly Envelope Budgets</h4>
-                      <table className="w-full text-left font-semibold">
+                  {/* INVOICE line items */}
+                  {selectedDocType === "INVOICE" && invoiceData && (
+                    <div className="space-y-4">
+                      <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider">Line Items</span>
+                      <table className="w-full text-left">
                         <thead>
-                          <tr className="bg-slate-50 text-[#0A0D14] border-y border-[#E9ECF5] text-[8.5px] font-bold uppercase">
+                          <tr className="bg-slate-50 border-y border-[#E9ECF5] text-[7.5px] font-black uppercase text-[#0A0D14] tracking-wide">
+                            <th className="py-2 px-3">Description</th>
                             <th className="py-2 px-3">Category</th>
-                            <th className="py-2 px-3 text-right">Ceiling Limit</th>
-                            <th className="py-2 px-3 text-right">Spent to Date</th>
-                            <th className="py-2 px-3 text-right">Utilization</th>
-                            <th className="py-2 px-3 text-right">Status Alert</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 text-[9.5px] text-slate-700">
-                          {accountData.budgets.map((b, idx) => (
-                            <tr key={idx}>
-                              <td className="py-2.5 px-3 font-bold text-[#0A0D14]">{b.category}</td>
-                              <td className="py-2.5 px-3 text-right">{currencySymbol}{b.limit.toLocaleString()}</td>
-                              <td className="py-2.5 px-3 text-right">{currencySymbol}{b.spent.toLocaleString()}</td>
-                              <td className="py-2.5 px-3 text-right">{b.percentage}%</td>
-                              <td className="py-2.5 px-3 text-right font-black">
-                                <span className={b.status === "Breached" ? "text-rose-500" : "text-emerald-500"}>{b.status}</span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Spendings list */}
-                    <div className="space-y-2">
-                      <h4 className="text-[10px] font-black text-[#0A0D14] uppercase tracking-wide">Top Discretionary Transactions</h4>
-                      <table className="w-full text-left font-semibold">
-                        <thead>
-                          <tr className="bg-slate-50 text-[#0A0D14] border-y border-[#E9ECF5] text-[8.5px] font-bold uppercase">
-                            <th className="py-2 px-3">Date</th>
-                            <th className="py-2 px-3">Title Description</th>
-                            <th className="py-2 px-3">Category</th>
-                            <th className="py-2 px-3">Method</th>
+                            <th className="py-2 px-3 text-right">Qty</th>
+                            <th className="py-2 px-3 text-right">Unit Price</th>
+                            <th className="py-2 px-3 text-right">Tax</th>
                             <th className="py-2 px-3 text-right">Amount</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100 text-[9.5px] text-slate-700">
-                          {accountData.topSpends.map((item, idx) => (
-                            <tr key={idx}>
-                              <td className="py-2.5 px-3">{item.date}</td>
-                              <td className="py-2.5 px-3 font-bold text-[#0A0D14]">{item.title}</td>
-                              <td className="py-2.5 px-3">{item.category}</td>
-                              <td className="py-2.5 px-3">{item.method}</td>
-                              <td className="py-2.5 px-3 text-right font-bold text-[#0A0D14]">{currencySymbol}{item.amount.toLocaleString()}</td>
+                        <tbody className="divide-y divide-slate-50 text-[9.5px]">
+                          {invoiceData.items.map((item, idx) => (
+                            <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
+                              <td className="py-2.5 px-3 font-bold text-[#0A0D14]">{item.description}</td>
+                              <td className="py-2.5 px-3 text-slate-500">{item.category}</td>
+                              <td className="py-2.5 px-3 text-right text-slate-600">{item.quantity}</td>
+                              <td className="py-2.5 px-3 text-right text-slate-600">{currencySymbol}{item.unitPrice.toLocaleString()}</td>
+                              <td className="py-2.5 px-3 text-right text-slate-500">{Math.round(item.taxRate * 100)}%</td>
+                              <td className="py-2.5 px-3 text-right font-bold text-[#0A0D14]">{fmtAmt(item.quantity * item.unitPrice)}</td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
+                      <div className="flex justify-end">
+                        <div className="w-64 space-y-2 text-[9px]">
+                          <div className="flex justify-between text-slate-500">
+                            <span>Subtotal</span><span className="font-semibold text-slate-700">{fmtAmt(invSubtotal)}</span>
+                          </div>
+                          <div className="flex justify-between text-slate-500">
+                            <span>GST (18% incl.)</span><span className="font-semibold text-slate-700">{fmtAmt(invGst)}</span>
+                          </div>
+                          {(invoiceData.discount ?? 0) > 0 && (
+                            <div className="flex justify-between text-emerald-600 font-semibold">
+                              <span>Discount</span><span>-{fmtAmt(invoiceData.discount!)}</span>
+                            </div>
+                          )}
+                          <div className="pt-2 border-t-2 flex justify-between items-center" style={{ borderColor: themeAccentHex }}>
+                            <span className="font-black text-xs text-[#0A0D14]">Grand Total</span>
+                            <span className="font-black text-sm" style={{ color: themeAccentHex }}>{fmtAmt(invTotal)}</span>
+                          </div>
+                          <div className="flex justify-between text-slate-400 text-[8px]">
+                            <span>Payment Method</span><span className="font-semibold">{invoiceData.paymentMethod}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Footer Section */}
-                <div className="space-y-5 pt-8 border-t border-[#E9ECF5]">
-                  {/* Digital verification seal info */}
-                  <div className="flex justify-between items-end">
-                    <div className="space-y-1">
-                      <h5 className="text-[9px] font-extrabold uppercase tracking-wide" style={{ color: themeAccentHex }}>Digital Verification Seal</h5>
-                      <p className="text-[8px] text-slate-400 font-semibold leading-relaxed">
-                        Tamper-proof financial ledger hash. Scan QR code to verify validity.
+                  {/* RECEIPT */}
+                  {selectedDocType === "RECEIPT" && receiptData && (
+                    <div className="space-y-4">
+                      <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider">Transaction Details</span>
+                      <div className="bg-slate-50 border border-[#E9ECF5] rounded-xl p-4 grid grid-cols-2 gap-x-8 gap-y-3 text-[9px]">
+                        {[
+                          ["Description", receiptData.title],
+                          ["Category", receiptData.category],
+                          ["Location", receiptData.location],
+                          ["Notes", receiptData.notes],
+                        ].map(([l, v]) => (
+                          <div key={String(l)}>
+                            <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">{l}</span>
+                            <span className="font-semibold text-slate-700">{v}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="flex justify-end">
+                        <div className="w-64 space-y-2 text-[9px]">
+                          <div className="flex justify-between text-slate-500">
+                            <span>Transaction Amount</span><span className="font-semibold text-slate-700">{fmtAmt(receiptData.amount)}</span>
+                          </div>
+                          <div className="flex justify-between text-slate-500">
+                            <span>GST (18% incl.)</span><span className="font-semibold text-slate-700">{fmtAmt(rcptGst)}</span>
+                          </div>
+                          <div className="pt-2 border-t-2 flex justify-between items-center" style={{ borderColor: themeAccentHex }}>
+                            <span className="font-black text-xs text-[#0A0D14]">Total Settled</span>
+                            <span className="font-black text-sm" style={{ color: themeAccentHex }}>{fmtAmt(receiptData.amount)}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className={`rounded-xl p-4 text-center font-black text-sm border ${statusCls(receiptData.status)}`}>
+                        {receiptData.status.toUpperCase()} — {fmtAmt(receiptData.amount)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* INVESTMENT */}
+                  {selectedDocType === "INVESTMENT" && investmentData && (
+                    <div className="space-y-4">
+                      <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider">SIP Allocation Breakdown</span>
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="bg-slate-50 border-y border-[#E9ECF5] text-[7.5px] font-black uppercase text-[#0A0D14] tracking-wide">
+                            <th className="py-2 px-3">Goal / Milestone</th>
+                            <th className="py-2 px-3">Target Date</th>
+                            <th className="py-2 px-3 text-right">Target</th>
+                            <th className="py-2 px-3 text-right">Saved</th>
+                            <th className="py-2 px-3 text-right">Progress</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50 text-[9.5px]">
+                          {investmentData.allocations.map((item, idx) => {
+                            const pct = Math.min(item.percent, 100);
+                            const pCls = pct >= 80 ? "bg-emerald-50 text-emerald-600" : pct >= 50 ? "bg-amber-50 text-amber-600" : "bg-rose-50 text-rose-500";
+                            return (
+                              <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
+                                <td className="py-2.5 px-3 font-bold text-[#0A0D14]">{item.goalTitle}</td>
+                                <td className="py-2.5 px-3 text-slate-500">{item.targetDate || "Dec 2026"}</td>
+                                <td className="py-2.5 px-3 text-right text-slate-600">{fmtAmt(item.target)}</td>
+                                <td className="py-2.5 px-3 text-right font-bold text-emerald-600">{fmtAmt(item.saved)}</td>
+                                <td className="py-2.5 px-3 text-right">
+                                  <span className={`font-black text-[8px] px-2 py-0.5 rounded-full ${pCls}`}>{pct}%</span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                      <div className="bg-slate-50 border border-[#E9ECF5] rounded-xl p-3 flex justify-between items-center">
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Total SIP Contributions</span>
+                        <span className="font-black text-sm" style={{ color: themeAccentHex }}>{fmtAmt(investmentData.totalInvested)}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ACCOUNT */}
+                  {selectedDocType === "ACCOUNT" && accountData && (
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          { label: "Total Income", value: fmtAmt(accountData.summary.totalIncome), colorCls: "text-emerald-600", bgCls: "bg-emerald-50 border-emerald-100" },
+                          { label: "Total Expenses", value: fmtAmt(accountData.summary.totalExpenses), colorCls: "text-rose-500", bgCls: "bg-rose-50 border-rose-100" },
+                          { label: "Net Savings", value: fmtAmt(accountData.summary.netSavings), colorCls: "", bgCls: "bg-slate-50 border-[#E9ECF5]" },
+                        ].map(m => (
+                          <div key={m.label} className={`rounded-xl border p-3 text-center ${m.bgCls}`}>
+                            <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider block">{m.label}</span>
+                            <span className={`block font-black text-sm mt-1 ${m.colorCls}`} style={!m.colorCls ? { color: themeAccentHex } : {}}>{m.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider block mb-2">Budget Envelopes</span>
+                        <table className="w-full text-left">
+                          <thead>
+                            <tr className="bg-slate-50 border-y border-[#E9ECF5] text-[7.5px] font-black uppercase text-[#0A0D14] tracking-wide">
+                              <th className="py-1.5 px-3">Category</th>
+                              <th className="py-1.5 px-3 text-right">Limit</th>
+                              <th className="py-1.5 px-3 text-right">Spent</th>
+                              <th className="py-1.5 px-3 text-right">Used</th>
+                              <th className="py-1.5 px-3 text-right">Status</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50 text-[9px]">
+                            {accountData.budgets.map((b, idx) => {
+                              const isOk = b.percentage < 80;
+                              const isWarn = b.percentage >= 80 && b.percentage < 100;
+                              return (
+                                <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
+                                  <td className="py-2 px-3 font-bold text-[#0A0D14]">{b.category}</td>
+                                  <td className="py-2 px-3 text-right text-slate-600">{fmtAmt(b.limit)}</td>
+                                  <td className="py-2 px-3 text-right text-slate-600">{fmtAmt(b.spent)}</td>
+                                  <td className="py-2 px-3 text-right text-slate-600">{b.percentage}%</td>
+                                  <td className="py-2 px-3 text-right">
+                                    <span className={`font-black text-[7.5px] px-1.5 py-0.5 rounded ${isOk ? "text-emerald-600 bg-emerald-50" : isWarn ? "text-amber-600 bg-amber-50" : "text-rose-500 bg-rose-50"}`}>
+                                      {b.status.toUpperCase()}
+                                    </span>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-wider block mb-2">Top Transactions</span>
+                        <table className="w-full text-left">
+                          <thead>
+                            <tr className="bg-slate-50 border-y border-[#E9ECF5] text-[7.5px] font-black uppercase text-[#0A0D14] tracking-wide">
+                              <th className="py-1.5 px-3">Date</th>
+                              <th className="py-1.5 px-3">Description</th>
+                              <th className="py-1.5 px-3">Category</th>
+                              <th className="py-1.5 px-3">Method</th>
+                              <th className="py-1.5 px-3 text-right">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-50 text-[9px]">
+                            {accountData.topSpends.map((item, idx) => (
+                              <tr key={idx} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
+                                <td className="py-2 px-3 text-slate-500">{item.date}</td>
+                                <td className="py-2 px-3 font-bold text-[#0A0D14]">{item.title}</td>
+                                <td className="py-2 px-3 text-slate-500">{item.category}</td>
+                                <td className="py-2 px-3 text-slate-500">{item.method}</td>
+                                <td className="py-2 px-3 text-right font-bold text-[#0A0D14]">{fmtAmt(item.amount)}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Document footer */}
+                  <div className="space-y-4 pt-4 border-t border-[#E9ECF5]">
+                    <div className="flex justify-between items-end gap-6">
+                      <div className="flex-1 space-y-1.5">
+                        <h5 className="text-[8px] font-black uppercase tracking-widest" style={{ color: themeAccentHex }}>Document Verification</h5>
+                        <p className="text-[7.5px] text-slate-400 font-semibold">This document is digitally signed and tamper-evident. Scan QR to verify authenticity.</p>
+                        <p className="text-[7.5px] text-slate-400 font-semibold">Verification URL: <span className="font-mono text-slate-500">verify.fintrack.io/{activeDocId?.toLowerCase()}</span></p>
+                        <div className="bg-slate-50 border border-[#E9ECF5] px-2 py-1.5 rounded-lg inline-block">
+                          <span className="text-[7px] font-mono text-slate-400">INTEGRITY: SHA256-{(activeDocId ?? "").replace(/[^a-z0-9]/gi,"").toLowerCase().padEnd(16,"0").slice(0,16).toUpperCase()}…</span>
+                        </div>
+                      </div>
+                      {/* QR Code (CSS art) */}
+                      <div className="flex flex-col items-center gap-1 shrink-0">
+                        <div className="w-14 h-14 bg-white border border-[#E9ECF5] rounded-lg p-1 grid grid-cols-7 gap-px shadow-sm">
+                          {Array.from({ length: 49 }).map((_, i) => {
+                            const row = Math.floor(i / 7), col = i % 7;
+                            const isFinder =
+                              (row < 3 && col < 3) || (row < 3 && col > 3) ||
+                              (row > 3 && col < 3) ||
+                              (row === 3 && (col === 0 || col === 6)) ||
+                              (col === 3 && (row === 0 || row === 6));
+                            const isData = [8,10,12,17,19,22,29,31,38,40].includes(i);
+                            return <div key={i} className={`rounded-sm ${isFinder || isData ? "bg-slate-900" : "bg-transparent"}`} />;
+                          })}
+                        </div>
+                        <span className="text-[6.5px] font-black text-slate-400 uppercase tracking-wider">Scan to Verify</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 border-t border-[#E9ECF5] -mx-10 px-10 py-3 text-center space-y-0.5">
+                      <p className="text-[7.5px] text-slate-400 font-semibold">
+                        {DocumentGeneratorService.COMPANY_NAME} · {DocumentGeneratorService.COMPANY_WEBSITE} · {DocumentGeneratorService.COMPANY_EMAIL}
                       </p>
-                      <span className="block text-[8px] font-mono text-slate-350 font-bold bg-slate-50 border border-slate-100 px-2 py-1.5 rounded-lg">
-                        SECURE HASH: SHA256-EF938C20A10F4D32...
-                      </span>
+                      <p className="text-[7px] text-slate-300 font-semibold">
+                        Computer-generated document — no physical signature required. © 2026 FinTrack, Inc. All rights reserved.
+                      </p>
                     </div>
-
-                    {/* Scan to verify indicators */}
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <span className="block text-[9px] font-extrabold text-[#0A0D14]">SCAN TO VERIFY</span>
-                        <span className="block text-[7.5px] text-slate-400 font-bold mt-0.5">FinTrack RAG Network</span>
-                      </div>
-                      
-                      {/* Vector QR code representation */}
-                      <div className="w-14 h-14 bg-white border border-[#E9ECF5] p-1.5 rounded-lg flex flex-col justify-between overflow-hidden shadow-sm relative">
-                        <div className="grid grid-cols-3 gap-0.5 w-full">
-                          <div className="w-3.5 h-3.5 border-2 border-slate-800 rounded-sm flex items-center justify-center"><div className="w-1.5 h-1.5 bg-slate-800 rounded-xs" /></div>
-                          <div className="w-3.5 h-3.5 flex flex-wrap gap-px p-0.5"><div className="w-1 h-1 bg-slate-800" /><div className="w-1 h-1 bg-slate-800" /></div>
-                          <div className="w-3.5 h-3.5 border-2 border-slate-800 rounded-sm flex items-center justify-center"><div className="w-1.5 h-1.5 bg-slate-800 rounded-xs" /></div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-0.5 w-full">
-                          <div className="w-3 h-3 flex flex-wrap gap-px p-0.5"><div className="w-1 h-1 bg-slate-800" /><div className="w-1 h-1 bg-slate-800" /></div>
-                          <div className="w-3 h-3 bg-slate-800 rounded-xs" />
-                          <div className="w-3 h-3 flex flex-wrap gap-px p-0.5"><div className="w-1 h-1 bg-slate-800" /></div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-0.5 w-full">
-                          <div className="w-3.5 h-3.5 border-2 border-slate-800 rounded-sm flex items-center justify-center"><div className="w-1.5 h-1.5 bg-slate-800 rounded-xs" /></div>
-                          <div className="w-3.5 h-3.5 bg-slate-800 rounded-xs" />
-                          <div className="w-3.5 h-3.5 flex flex-wrap gap-px p-0.5"><div className="w-1 h-1 bg-slate-800" /><div className="w-1 h-1 bg-slate-800" /></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Legal disclaimer */}
-                  <div className="border-t border-[#E9ECF5] pt-4 text-[7.5px] text-slate-400 text-center leading-normal font-semibold">
-                    FinTrack is a private local-first financial operating system. Digital records are fully encrypted.<br />
-                    For billing support contact support@fintrack.io. Copyright 2026 FinTrack, Inc.
                   </div>
                 </div>
-
               </div>
+
             ) : (
-              /* EMAIL VIEW PREVIEW (Stripe/Notion style transactional HTML email) */
-              <div className="w-full bg-[#F7F8FC] border border-[#E9ECF5] shadow-xl rounded-2xl mx-auto p-8 space-y-6 font-sans text-[#3C4257] text-xs max-w-[600px] leading-relaxed select-none">
-                
-                {/* Email Header */}
-                <div className="bg-white border border-[#E9ECF5] rounded-xl p-6 space-y-6 text-left shadow-sm">
-                  
-                  {/* Brand Logo */}
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded bg-[#6D5DFC] flex items-center justify-center shadow-md">
-                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                      </svg>
+              /* EMAIL PREVIEW */
+              <div className="w-full bg-[#F0F2F5] border border-[#E9ECF5] shadow-xl rounded-2xl mx-auto p-6 max-w-[580px] select-none">
+                <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#E9ECF5]">
+                  <div className="h-1.5 w-full" style={{ backgroundColor: themeAccentHex }} />
+                  <div className="p-6 space-y-5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded flex items-center justify-center" style={{ backgroundColor: themeAccentHex }}>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" className="w-4 h-4">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                      </div>
+                      <span className="font-black text-sm text-[#0A0D14]">FinTrack</span>
                     </div>
-                    <span className="font-extrabold text-sm text-[#0A0D14] tracking-tight">FinTrack System</span>
-                  </div>
-
-                  {/* Heading */}
-                  <div className="space-y-2">
-                    <h3 className="text-base font-black text-[#0A0D14] tracking-tight">
-                      Your {selectedDocType.toLowerCase()} statement from FinTrack
-                    </h3>
-                    <p className="text-slate-500 font-semibold text-[11px]">
-                      Receipt Reference: <span className="font-bold text-[#0A0D14]">
-                        {selectedDocType === "INVOICE" && invoiceData?.id}
-                        {selectedDocType === "RECEIPT" && receiptData?.id}
-                        {selectedDocType === "INVESTMENT" && investmentData?.id}
-                        {selectedDocType === "ACCOUNT" && accountData?.id}
-                      </span>
+                    <div>
+                      <h2 className="text-base font-black text-[#0A0D14] leading-snug">
+                        Your {activeDocLabel[selectedDocType]} from FinTrack
+                      </h2>
+                      <p className="text-slate-500 text-[11px] font-semibold mt-1">
+                        Hi {(selectedDocType === "INVOICE" ? invoiceData?.customer.name : receiptData?.customer.name)?.split(" ")[0] ?? "there"}, here's your document summary.
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-[#E9ECF5] overflow-hidden">
+                      <div className="px-5 py-4 bg-slate-50 flex items-center justify-between">
+                        <div>
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block">Amount</span>
+                          <span className="text-2xl font-black mt-0.5 block" style={{ color: themeAccentHex }}>
+                            {selectedDocType === "INVOICE" ? fmtAmt(invTotal) :
+                             selectedDocType === "RECEIPT" ? fmtAmt(receiptData?.amount ?? 0) :
+                             selectedDocType === "INVESTMENT" ? fmtAmt(investmentData?.totalInvested ?? 0) :
+                             fmtAmt(accountData?.summary.netSavings ?? 0)}
+                          </span>
+                        </div>
+                        <span className={`text-[8px] font-black px-2.5 py-1 rounded border uppercase tracking-wider ${statusCls(docStatus)}`}>{docStatus}</span>
+                      </div>
+                      <div className="px-5 py-3 space-y-1.5 text-[9.5px]">
+                        <div className="flex justify-between text-slate-500 font-semibold">
+                          <span>Reference</span>
+                          <span className="font-mono font-bold text-slate-700">{activeDocId}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-500 font-semibold">
+                          <span>Document Type</span>
+                          <span className="font-bold text-slate-700">{activeDocLabel[selectedDocType]}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-500 font-semibold">
+                          <span>Date</span>
+                          <span className="font-bold text-slate-700">
+                            {selectedDocType === "INVOICE" ? invoiceData?.date :
+                             selectedDocType === "RECEIPT" ? receiptData?.date :
+                             investmentData?.date ?? accountData?.date}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-[10.5px] text-slate-500 font-semibold leading-relaxed">
+                      Your {activeDocLabel[selectedDocType].toLowerCase()} is ready. Keep it for your records or submit it for tax and expense reporting.
                     </p>
-                  </div>
-
-                  {/* Statement Box */}
-                  <div className="p-4 bg-[#F7F8FC] border border-[#E9ECF5] rounded-xl space-y-3.5">
-                    <div className="flex justify-between items-center text-[10px] text-slate-400 font-black uppercase">
-                      <span>Statement Summary</span>
-                      <span className="text-[#00C875]">SETTLED</span>
-                    </div>
-
-                    <div className="flex justify-between text-xs items-center font-bold text-slate-800">
-                      <span>
-                        {selectedDocType === "INVOICE" && "Subscription Pro Monthly"}
-                        {selectedDocType === "RECEIPT" && receiptData?.title}
-                        {selectedDocType === "INVESTMENT" && "Monthly SIP Allocations"}
-                        {selectedDocType === "ACCOUNT" && `${accountData?.monthName} Summary`}
-                      </span>
-                      <span className="text-base font-black" style={{ color: themeAccentHex }}>
-                        {selectedDocType === "INVOICE" && `${currencySymbol}${invoiceData?.items[0].amount.toLocaleString()}`}
-                        {selectedDocType === "RECEIPT" && `${currencySymbol}${receiptData?.amount.toLocaleString()}`}
-                        {selectedDocType === "INVESTMENT" && `${currencySymbol}${investmentData?.totalInvested.toLocaleString()}`}
-                        {selectedDocType === "ACCOUNT" && `${currencySymbol}${accountData?.summary.netSavings.toLocaleString()}`}
-                      </span>
-                    </div>
-
-                    <p className="text-[10px] text-slate-400 leading-normal font-semibold">
-                      This transaction is synchronized in your local ledger wallet. Download the PDF statement below to archive or submit for corporate business taxes.
-                    </p>
-                  </div>
-
-                  {/* CTA button */}
-                  <div className="text-center pt-2">
-                    <button
-                      onClick={handleDownloadPDF}
-                      className="inline-flex items-center gap-1.5 text-white font-extrabold text-xs px-6 py-3 rounded-xl shadow-md shadow-[#6D5DFC]/10 hover:scale-102 transition-all cursor-pointer"
-                      style={{ backgroundColor: themeAccentHex }}
-                    >
-                      Download PDF Copy <ArrowRight className="w-3.5 h-3.5" />
+                    <button onClick={handleDownloadPDF}
+                      className="w-full flex items-center justify-center gap-2 text-white font-bold text-sm py-3 rounded-xl shadow-md transition-all"
+                      style={{ backgroundColor: themeAccentHex }}>
+                      <Download className="w-4 h-4" /> Download PDF
                     </button>
+                    <div className="flex items-center gap-4 text-[9px] text-slate-400 font-semibold justify-center">
+                      <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> 256-bit encrypted</span>
+                      <span className="flex items-center gap-1"><Shield className="w-3 h-3" /> Tamper-proof</span>
+                      <span className="flex items-center gap-1"><Globe className="w-3 h-3" /> Legally compliant</span>
+                    </div>
                   </div>
-
-                </div>
-
-                {/* Email Footer */}
-                <div className="text-center text-[9px] text-slate-400 space-y-1 font-semibold">
-                  <p>Sent securely via FinTrack Mailers.</p>
-                  <p>100 Pine Street, Suite 2400, San Francisco, CA 94111, USA</p>
-                  <div className="space-x-2 pt-1">
-                    <a href="#privacy" className="underline">Privacy Policy</a>
-                    <span>·</span>
-                    <a href="#terms" className="underline">Terms of Service</a>
+                  <div className="border-t border-[#E9ECF5] px-6 py-4 bg-slate-50 text-center space-y-1">
+                    <p className="text-[8.5px] text-slate-400 font-semibold">Sent from FinTrack Secure Mailer · 100 Pine Street, San Francisco, CA 94111</p>
+                    <div className="flex justify-center gap-3 text-[8px] text-slate-400 font-semibold">
+                      <a href="#privacy" className="underline underline-offset-2">Privacy Policy</a>
+                      <span>·</span>
+                      <a href="#terms" className="underline underline-offset-2">Terms of Service</a>
+                    </div>
                   </div>
                 </div>
-
               </div>
             )}
           </div>
-
         </div>
       )}
 
-      {/* Toast notifications */}
+      {/* Toast */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 animate-slide-up flex items-center gap-3 bg-slate-900 text-white text-xs font-semibold px-4 py-3.5 rounded-2xl shadow-xl border border-slate-800">
+        <div className="fixed bottom-6 right-6 z-50 animate-fade-in flex items-center gap-3 bg-slate-900 text-white text-xs font-semibold px-4 py-3.5 rounded-2xl shadow-xl border border-slate-800">
           {toastType === "success" && <span className="w-1.5 h-1.5 rounded-full bg-[#00C875]" />}
           {toastType === "info" && <span className="w-1.5 h-1.5 rounded-full bg-sky-400" />}
           {toastType === "warning" && <span className="w-1.5 h-1.5 rounded-full bg-[#FF5A5F]" />}
           <span className="pr-2">{toastMessage}</span>
-          <button 
-            onClick={() => setToastMessage(null)}
-            className="text-slate-400 hover:text-white p-0.5 rounded transition-all"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
+          <button onClick={() => setToastMessage(null)} className="text-slate-400 hover:text-white p-0.5 rounded transition-all"><X className="w-3.5 h-3.5" /></button>
         </div>
       )}
-
     </div>
   );
 }

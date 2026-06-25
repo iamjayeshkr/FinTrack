@@ -37,11 +37,11 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/goals", label: "Goals", icon: Target },
   { href: "/advisor", label: "AI Advisor", icon: Sparkles, badge: "AI" },
   { href: "/analytics", label: "Analytics", icon: BarChart3, isComingSoon: true },
-  { href: "/reports", label: "Reports", icon: FileText, isComingSoon: true },
+  { href: "/reports", label: "Reports", icon: FileText },
   { href: "/investments", label: "Investments", icon: TrendingUp, isComingSoon: true },
   { href: "/subscriptions", label: "Subscriptions", icon: Coins, isComingSoon: true },
   { href: "/billing", label: "Billing & Plans", icon: CreditCard },
-  { href: "/settings", label: "Settings", icon: Settings, isComingSoon: true },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -89,9 +89,12 @@ export default function Sidebar() {
       <div className="p-4 border-b border-[#E9ECF5]">
         <div className="flex items-center justify-between p-2 rounded-xl hover:bg-[#F7F8FC] cursor-pointer transition-colors duration-200 group">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#6D5DFC] to-[#8B7CFF] flex items-center justify-center shadow-md shadow-[#6D5DFC]/10 text-white shrink-0 font-bold text-sm">
-              FT
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img 
+              src="/logo.png" 
+              alt="FinTrack Logo" 
+              className="w-9 h-9 rounded-xl object-contain bg-slate-50 border border-slate-100 shadow-sm shrink-0"
+            />
             <div className="text-left min-w-0">
               <span className="block font-bold text-sm text-[#0A0D14] truncate leading-tight">
                 {user?.firstName ? `${user.firstName}'s Space` : "Personal Space"}

@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { PrismaModule } from "./database/prisma.module";
+import { SyncModule } from "./modules/sync/sync.module";
 
 @Module({
   imports: [
@@ -10,6 +11,7 @@ import { PrismaModule } from "./database/prisma.module";
     }),
     EventEmitterModule.forRoot(),
     PrismaModule,
+    SyncModule,
   ],
   controllers: [],
   providers: [],
